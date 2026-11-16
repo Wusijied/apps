@@ -17,6 +17,7 @@ Edit this file, not the JSON.
 """
 import json
 import math
+import os
 import sys
 
 W, H, ROW = 1920, 720, 660           # the cluster; BMW's strip row is y 660..720
@@ -29,6 +30,27 @@ def lerp_ang(table, v):
         if a <= v <= b:
             return x + (y - x) * (v - a) / (b - a)
     raise ValueError(v)
+
+
+FONTS = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'apps', 'cluster_themes', 'hud', 'fonts')
+_fonts = {}
+
+
+def font(name):
+    """A baked font's metrics (tools/bake_fonts.py): cell height and each glyph's advance."""
+    if name not in _fonts:
+        with open(os.path.join(FONTS, name + '.json')) as f:
+            _fonts[name] = json.load(f)
+    return _fonts[name]
+
+
+def text_widget(wid, text, fname, cx, cy, toggle, color='mark'):
+    """A text widget centred on (cx, cy), just wide enough for its text."""
+    f = font(fname)
+    w = sum(f['glyphs'][c]['advance'] for c in text) + 4
+    h = f['cellHeight']
+    return {'id': wid, 'type': 'text', 'class': 'content', 'z': 5, 'x': round(cx - w / 2), 'y': round(cy - h / 2),
+            'w': w, 'h': h, 'text': text, 'font': fname, 'color': color, 'align': 'center', 'toggle': toggle}
 
 
 # --- the metric (EU) face, eu-kmh-day-face.png (2000 x 1500) ----------------------------------------------------
@@ -78,6 +100,21 @@ EU = {
         [3, -44, -32, 104, 132, 'blue'],
         [3, 35, 47, 104, 132, 'red'],
     ],
+    # the printing: (text, font, photo centre x, y); '⅟' is the fuel gauge's "1/1" (tools/bake_fonts.py)
+    'texts': [
+        ('20', 'e_spd', 583, 818), ('40', 'e_spd', 570, 760), ('60', 'e_spd', 578, 703), ('80', 'e_spd', 602, 653),
+        ('100', 'e_spd', 648, 613), ('120', 'e_spd', 706, 585), ('140', 'e_spd', 772, 578), ('160', 'e_spd', 828, 596),
+        ('180', 'e_spd', 873, 635), ('200', 'e_spd', 902, 688), ('220', 'e_spd', 917, 743), ('240', 'e_spd', 911, 800),
+        ('km/h', 'e_lab', 752, 675), ('EG', 'e_xs', 752, 696),
+        ('0', 'e_rpm', 1099, 854), ('1', 'e_rpm', 1069, 764), ('2', 'e_rpm', 1112, 670), ('3', 'e_rpm', 1195, 607),
+        ('4', 'e_rpm', 1306, 602), ('5', 'e_rpm', 1396, 654), ('6', 'e_rpm', 1447, 751), ('7', 'e_rpm', 1435, 854),
+        ('1/min', 'e_lab', 1264, 665), ('x1000', 'e_lab', 1264, 690),
+        ('0', 'e_lab', 1137, 888), ('10', 'e_lab', 1211, 930), ('20', 'e_lab', 1289, 933), ('30', 'e_lab', 1361, 896),
+        ('L/100km', 'e_sm', 1249, 904),
+        ('0', 'e_lab', 257, 763), ('½', 'e_frac', 350, 733), ('⅟', 'e_frac', 437, 770),
+    ],
+    # (icon, photo centre x, y, size)
+    'icons': [('fuel', 352, 808, 48), ('e36cool', 1658, 848, 46)],
     'econ': {'pivot': [1250, 815], 'top': 877, 'len': 150, 'width': 4.5, 'ticks': EU_ECON_TICKS,
              'values': list(range(0, 31, 2)), 'rest': -118},
 }
@@ -148,7 +185,12 @@ def build(face, wid, toggle):
         'econ': {'pivot': [X(px), Y(py)], 'top': top, 'len': L(E['len']), 'width': L(E['width']),
                  'ticks': eticks, 'map': emap, 'rest': E['rest']},
     }
-    return [dash, econ]
+    tag = wid.split('_')[1]
+    texts = [text_widget('t%s_%d' % (tag, i), t, fn, X(x), Y(y), toggle) for i, (t, fn, x, y) in enumerate(face['texts'])]
+    icons = [{'id': 'i%s_%s' % (tag, name), 'type': 'icon', 'icon': name, 'class': 'content', 'z': 5,
+              'x': round(X(x) - L(sz) / 2), 'y': round(Y(y) - L(sz) / 2), 'w': round(L(sz)), 'h': round(L(sz)),
+              'color': 'mark', 'toggle': toggle} for name, x, y, sz in face['icons']]
+    return [dash, econ] + texts + icons
 
 
 def layout():
