@@ -140,8 +140,8 @@ const THEMES = {
     },
     // E36 (layouts e36.json, widget e36dash): the 328i cluster of the 90s, white print on black dials in a dark grey face,
     // cream needles. Colours from the EU and US day photos (design/photos/e36), cleaned of the glass's glare. "night"
-    // replaces these roles after sunset (nightTheme, instead of the 60 % dim): the E36's orange-red lighting from the
-    // night photos. noGarland: no holiday light string over it (a pure E36).
+    // replaces these roles after sunset (nightTheme, instead of the 60 % dim): all the print, ticks, needles and LCD turn to
+    // the E36's orange-red lighting from the night photos. noGarland: no holiday light string over it (a pure E36).
     e36: {
         name: 'E36',
         fg: [240, 240, 236, 255], dim: [240, 240, 236, 255], track: [255, 255, 255, 34], arc: [240, 240, 236, 255],
@@ -155,13 +155,13 @@ const THEMES = {
         orange: [242, 112, 34, 255], arrow: [30, 46, 38, 255], well: [12, 12, 14, 255], lcd: [255, 96, 42, 255],
         strip: [26, 26, 28, 255],
         noGarland: true,
-        night: {
-            fg: [255, 86, 48, 255], dim: [255, 86, 48, 255], arc: [255, 86, 48, 255], head: [255, 86, 48, 255],
-            line: [24, 22, 22, 255],
-            bezel: [6, 6, 6, 255], face: [24, 22, 22, 255], dial: [5, 4, 4, 255], mark: [255, 86, 48, 255],
-            needle: [255, 104, 56, 255], hub: [40, 32, 30, 255], red: [235, 40, 24, 255], blue: [40, 110, 190, 255],
-            orange: [235, 92, 28, 255], arrow: [14, 20, 16, 255], well: [6, 5, 5, 255], lcd: [255, 96, 42, 255],
-            strip: [12, 11, 11, 255],
+        night: {     // from the night photos (us-mph-night-closeup.png): orange-red print, paler salmon needles, the face still grey
+            fg: [248, 100, 80, 255], dim: [248, 100, 80, 255], arc: [248, 100, 80, 255], head: [248, 100, 80, 255],
+            line: [44, 45, 49, 255],
+            bezel: [10, 10, 11, 255], face: [44, 45, 49, 255], dial: [16, 15, 19, 255], mark: [248, 100, 80, 255],
+            needle: [236, 150, 134, 255], hub: [60, 60, 64, 255], red: [222, 58, 44, 255], blue: [24, 110, 140, 255],
+            orange: [235, 92, 28, 255], arrow: [18, 26, 21, 255], well: [8, 8, 10, 255], lcd: [255, 110, 60, 255],
+            strip: [20, 20, 23, 255],
         },
     },
     // Cruise (layouts cruise.json): calm and quiet for the highway, soft white and a cool teal, no reds until needed.
