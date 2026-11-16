@@ -102,9 +102,10 @@ the bottom.
 
 ## Design (decided)
 
-- **Geometry:** one uniform scale from each face photo, true proportions, the whole face fitting 1920 wide. Place it
-  vertically so the **lamp strips sit in the bottom row (y ≈ 660–720)** and the face's top stays inside the hood
-  line. **BMW's gear letter shows through the right lamp strip** at x 1380–1460, as one more lamp cell. The shader
+- **Geometry:** one uniform scale from each face photo, true proportions. **As big as the screen allows** (owner's
+  call, Nov 16): the fuel and coolant dials reach the screen's left and right edges, so the bezel and hood outline go
+  off-screen and the grey face fills behind; the **lamp strips' top sits at the strip row (y 660)**, cut by the screen's
+  bottom edge. **BMW's gear letter shows through the right lamp strip** at x 1380–1460, as one more lamp cell. The shader
   leaves that rect see-through and covers everything else of the bottom row.
 - **New effect widget `e36dash`** (`shared/shaders.js` `E36DASH`, wired in `shared/hud.js` like `vdash`: header doc,
   create and uniforms, the 20 Hz tick; required keys in `shared/layouts.js`). Uniforms: speed, rpm, fuel 0..1,

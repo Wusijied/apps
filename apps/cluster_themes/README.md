@@ -74,7 +74,7 @@ A race-sim style dash with angled frames and a music panel.
 
 ### E36
 
-The BMW E36 328i cluster of the 90s, as it was: traced off photos of the real thing at its true proportions.
+The BMW E36 328i cluster of the 90s, as it was: traced off photos of the real thing at its true proportions, as big as the screen allows.
 
 - **The dials:** fuel, speed, revs and coolant, white print on black with cream needles, the red zone from 6000 rpm, the blue and red coolant marks and the reserve block on the fuel gauge.
 - **Two faces, by your Units setting:** with km/h, the European face (20 to 240 km/h, fuel use in L/100km); with mph, the US face (MPH with the small km/h ring inside, MPG, "UNLEADED GASOLINE ONLY").

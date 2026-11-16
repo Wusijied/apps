@@ -44,6 +44,8 @@ HUD_FONTS = [
     ('np_small', 'Barlow-Medium.ttf', 16, ''.join(chr(i) for i in range(32, 127))),
 ]
 # Cluster Themes, 1920x720 LCD. GT3: the race-dash look, Barlow Condensed.
+E36_SCALE = 1.3401     # = gen_e36.py place()'s scale / 0.9 (1.2061 / 0.9)
+E36 = lambda px: round(px * E36_SCALE)
 CLUSTER_FONTS = [
     ('gear', 'BarlowCondensed-Bold.ttf', 330, DIGITS + 'PRND-'),
     ('big', 'BarlowCondensed-Bold.ttf', 124, DIGITS + '.:-'),   # 124: "20.3 PSI" fits a 280 px box beside the hood; ':' for a clock in a readout slot
@@ -97,18 +99,19 @@ CLUSTER_FONTS = [
     ('d7_val', 'DSEG7Classic-Bold.ttf', 60, DIGITS + '-.:'),
     ('d7_sm', 'DSEG7Classic-Bold.ttf', 42, DIGITS + '-.:'),
     ('d7_gear', 'DSEG7Classic-Bold.ttf', 190, DIGITS + 'PRN-', 0, None, {'R': 'r', 'N': 'n'}),   # r and n: seven segments can't draw R or N
-    # E36: the 328i cluster's printing (Barlow Condensed for its DIN-like figures). The fuel gauge's "1/1" is drawn for
+    # E36: the 328i cluster's printing (sizes as at a 0.9 scale of the photo, times E36_SCALE: gen_e36.py place() draws
+    # the cluster as big as the screen allows, and refuses fonts baked for another scale). (Barlow Condensed for its DIN-like figures). The fuel gauge's "1/1" is drawn for
     # the stand-in character '⅟' (a superior one, the fraction slash, a superior one dropped to the baseline)
-    ('e_spd', 'BarlowCondensed-SemiBold.ttf', 32, DIGITS),
-    ('e_rpm', 'BarlowCondensed-SemiBold.ttf', 38, DIGITS),
-    ('e_lab', 'BarlowCondensed-SemiBold.ttf', 20, UPPER + LOWER + DIGITS + '/ '),
-    ('e_frac', 'BarlowCondensed-SemiBold.ttf', 34, '½⅟', 0, None, {'⅟': [('1', 0.55, -0.325), ('⁄', 1.0, 0.0), ('1', 0.55, 0.0)]}),
-    ('e_us', 'BarlowCondensed-SemiBold.ttf', 26, DIGITS),                   # US face: the MPG figures
-    ('e_word', 'BarlowSemiCondensed-Medium.ttf', 23, UPPER + ' '),          # US face: UNLEADED GASOLINE, ONLY
-    ('e_sm', 'BarlowCondensed-SemiBold.ttf', 15, UPPER + LOWER + DIGITS + '/° '),
-    ('e_xs', 'BarlowCondensed-SemiBold.ttf', 10, UPPER),
-    ('e_lcd', 'DSEG7Classic-Bold.ttf', 22, DIGITS + '.-: '),                # the LCD: odometer field, trip
-    ('e_lcd2', 'DSEG7Classic-Bold.ttf', 17, DIGITS + '.-: '),               # its second row: clock, outside temperature
+    ('e_spd', 'BarlowCondensed-SemiBold.ttf', E36(32), DIGITS),
+    ('e_rpm', 'BarlowCondensed-SemiBold.ttf', E36(38), DIGITS),
+    ('e_lab', 'BarlowCondensed-SemiBold.ttf', E36(20), UPPER + LOWER + DIGITS + '/ '),
+    ('e_frac', 'BarlowCondensed-SemiBold.ttf', E36(34), '½⅟', 0, None, {'⅟': [('1', 0.55, -0.325), ('⁄', 1.0, 0.0), ('1', 0.55, 0.0)]}),
+    ('e_us', 'BarlowCondensed-SemiBold.ttf', E36(26), DIGITS),                   # US face: the MPG figures
+    ('e_word', 'BarlowSemiCondensed-Medium.ttf', E36(23), UPPER + ' '),          # US face: UNLEADED GASOLINE, ONLY
+    ('e_sm', 'BarlowCondensed-SemiBold.ttf', E36(15), UPPER + LOWER + DIGITS + '/° '),
+    ('e_xs', 'BarlowCondensed-SemiBold.ttf', E36(10), UPPER),
+    ('e_lcd', 'DSEG7Classic-Bold.ttf', E36(22), DIGITS + '.-: '),                # the LCD: odometer field, trip
+    ('e_lcd2', 'DSEG7Classic-Bold.ttf', E36(17), DIGITS + '.-: '),               # its second row: clock, outside temperature
     # Cruise: calm, light numbers
     ('c_speed', 'BarlowSemiCondensed-Medium.ttf', 150, DIGITS + '-'),
     ('c_val', 'BarlowSemiCondensed-Medium.ttf', 62, DIGITS + '.:-+°'),

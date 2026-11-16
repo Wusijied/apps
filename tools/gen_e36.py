@@ -185,17 +185,29 @@ US['icons'] = [('fuel',) + tuple(round(v, 1) for v in us2eu('fuel', 260, 821)) +
                ('e36cool',) + tuple(round(v, 1) for v in us2eu('cool', 1361, 830)) + (46,)]
 
 def place(face):
-    """Scale and offset from the face photo to the cluster: true proportions, the lamp strips' bottom at y 718."""
-    s = 0.9
-    strip_bottom = max(y + h for _, y, _, h in face['strips'])
-    box = face['face']['box']
-    ox = W / 2 - s * (box[0] + box[2]) / 2
-    oy = 718 - s * strip_bottom
+    """Scale and offset from the face photo to the cluster, true proportions: as big as the screen allows, the fuel and
+    coolant dials reaching its left and right edges (the bezel and the hood's outline go off-screen; the grey face
+    fills behind), the lamp strips' top at the strip row (y 660), where BMW's gear letter shows through the right one."""
+    fuel, cool = face['dials'][0], face['dials'][3]
+    left, right = fuel['c'][0] - fuel['r'] - 4, cool['c'][0] + cool['r'] + 4      # their dark rims included
+    s = (W - 12) / (right - left)
+    ox = 6 - s * left
+    oy = ROW - s * min(y for _, y, _, _ in face['strips'])
     return s, ox, oy
+
+
+# the E36 fonts are baked at this scale's sizes (tools/bake_fonts.py E36_SIZE: sizes for a 0.9 scale, times this / 0.9)
+def check_fonts(s):
+    want = round(32 * s / 0.9)
+    got = font('e_spd')['size']
+    if got != want:
+        raise SystemExit('fonts baked for another scale: e_spd is %d px, this layout needs %d (bake_fonts.py E36_SCALE = %.4f)'
+                         % (got, want, s / 0.9))
 
 
 def build(face, wid, toggle):
     s, ox, oy = place(face)
+    check_fonts(s)
     X = lambda x: round(ox + s * x, 1)
     Y = lambda y: round(oy + s * y, 1)
     L = lambda v: round(s * v, 2)
