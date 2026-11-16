@@ -33,7 +33,8 @@
     "shift_cue.js",
     "smart_temps.js",
     "hud_holiday.js",
-    "garland.js"
+    "garland.js",
+    "e36.js"
   ],
   "signals": {
     "de.bmw.infotainment.vehicle.CDS": {
