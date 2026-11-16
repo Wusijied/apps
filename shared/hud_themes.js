@@ -138,6 +138,32 @@ const THEMES = {
         ink: [12, 12, 14, 255], accent: [80, 255, 120, 255], well: [0, 0, 0, 255],
         green: [80, 255, 120, 255], ghost: [255, 170, 40, 40],
     },
+    // E36 (layouts e36.json, widget e36dash): the 328i cluster of the 90s, white print on black dials in a dark grey face,
+    // cream needles. Colours from the EU and US day photos (design/photos/e36), cleaned of the glass's glare. "night"
+    // replaces these roles after sunset (nightTheme, instead of the 60 % dim): the E36's orange-red lighting from the
+    // night photos. noGarland: no holiday light string over it (a pure E36).
+    e36: {
+        name: 'E36',
+        fg: [240, 240, 236, 255], dim: [240, 240, 236, 255], track: [255, 255, 255, 34], arc: [240, 240, 236, 255],
+        glow: 0, stripe: false,
+        bar: { low: [240, 240, 236], mid: [240, 240, 236], high: [235, 52, 30], midAt: 'shift' },
+        rev: { from: [240, 240, 236], to: [240, 240, 236] },
+        bg: [0, 0, 0, 255], panel: [0, 0, 0, 255], line: [62, 63, 66, 255], head: [240, 240, 236, 255],
+        ink: [10, 10, 12, 255], accent: [235, 52, 30, 255],
+        bezel: [16, 16, 18, 255], face: [60, 61, 64, 255], dial: [10, 10, 12, 255], mark: [240, 240, 236, 255],
+        needle: [238, 232, 214, 255], hub: [88, 88, 90, 255], red: [235, 52, 30, 255], blue: [62, 150, 226, 255],
+        orange: [242, 112, 34, 255], arrow: [30, 46, 38, 255], well: [12, 12, 14, 255], lcd: [255, 96, 42, 255],
+        strip: [26, 26, 28, 255],
+        noGarland: true,
+        night: {
+            fg: [255, 86, 48, 255], dim: [255, 86, 48, 255], arc: [255, 86, 48, 255], head: [255, 86, 48, 255],
+            line: [24, 22, 22, 255],
+            bezel: [6, 6, 6, 255], face: [24, 22, 22, 255], dial: [5, 4, 4, 255], mark: [255, 86, 48, 255],
+            needle: [255, 104, 56, 255], hub: [40, 32, 30, 255], red: [235, 40, 24, 255], blue: [40, 110, 190, 255],
+            orange: [235, 92, 28, 255], arrow: [14, 20, 16, 255], well: [6, 5, 5, 255], lcd: [255, 96, 42, 255],
+            strip: [12, 11, 11, 255],
+        },
+    },
     // Cruise (layouts cruise.json): calm and quiet for the highway, soft white and a cool teal, no reds until needed.
     cruise: {
         name: 'Cruise',
@@ -252,4 +278,25 @@ function color(theme, c) {
     return theme[c] || theme.fg;
 }
 
-module.exports = { THEMES, M_STRIPE, LIGHTS, VERDICT, color };
+/** A theme with its whites and greys at brightness k (0..1): the night colours (Cluster Themes "nightDim"). */
+function dimTheme(theme, k) {
+    const out = {};
+    Object.keys(theme).forEach((key) => {
+        const c = theme[key];
+        const grey = Array.isArray(c) && c.length >= 3 && Math.max(c[0], c[1], c[2]) - Math.min(c[0], c[1], c[2]) < 40;
+        out[key] = grey ? [Math.round(c[0] * k), Math.round(c[1] * k), Math.round(c[2] * k)].concat(c.length > 3 ? [c[3]] : []) : c;
+    });
+    out.name = theme.name;
+    return out;
+}
+
+/** The theme as drawn after sunset: its own "night" roles when it has them (E36's orange-red lighting), else its
+ *  whites and greys dimmed to k. */
+function nightTheme(theme, k) {
+    if (!theme.night) return dimTheme(theme, k);
+    const out = Object.assign({}, theme, theme.night, { name: theme.name });
+    delete out.night;
+    return out;
+}
+
+module.exports = { THEMES, M_STRIPE, LIGHTS, VERDICT, color, nightTheme };

@@ -104,6 +104,30 @@ test('Trip: no speed adds nothing', () => {
     assert.strictEqual(t.km(), 0);
 });
 
+// --- night colours ------------------------------------------------------------------------------------------------
+const themes = require('../shared/hud_themes');
+test('nightTheme: a theme with night roles takes them', () => {
+    const t = themes.nightTheme(themes.THEMES.e36, 0.6);
+    assert.deepStrictEqual(t.mark, themes.THEMES.e36.night.mark);
+    assert.deepStrictEqual(t.lcd, themes.THEMES.e36.night.lcd);
+    assert.strictEqual(t.night, undefined);
+    assert.strictEqual(t.name, 'E36');
+});
+test('nightTheme: other themes still dim their whites and greys to 60 %', () => {
+    const t = themes.nightTheme(themes.THEMES.classic, 0.6);
+    assert.deepStrictEqual(t.fg, [146, 148, 150, 255]);
+    assert.deepStrictEqual(t.bar, themes.THEMES.classic.bar);
+});
+test('E36 palette: every role the layout uses exists by day and by night', () => {
+    const roles = ['bg', 'bezel', 'face', 'dial', 'mark', 'needle', 'hub', 'red', 'blue', 'orange', 'arrow', 'well',
+        'lcd', 'strip', 'fg', 'dim'];
+    roles.forEach((r) => {
+        assert.ok(Array.isArray(themes.THEMES.e36[r]), 'day ' + r);
+        assert.ok(Array.isArray(themes.nightTheme(themes.THEMES.e36, 0.6)[r]), 'night ' + r);
+    });
+    assert.strictEqual(themes.THEMES.e36.noGarland, true);
+});
+
 if (failed) {
     console.log('e36: ' + failed + ' failed, ' + passed + ' passed');
     process.exit(1);

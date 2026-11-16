@@ -243,7 +243,8 @@
  * Play demo (demo_script.js, the page's button): a scripted one-minute drive on the real HUD / cluster with a DEMO tag,
  * only while the car stands; it stops past 5 km/h of the car's own speed. this.car is its stand-in for the kit's Car.
  * Night colours (Cluster Themes "nightDim" on Auto): after sunset (sun.js, at _sunPlace(): the time zone's middle) a layout's own theme is
- * built with its whites and greys at 60 %; the minute timer rebuilds at sunset and sunrise.
+ * built with its whites and greys at 60 % (hud_themes.js nightTheme), or with its own "night" roles when it has them (E36's
+ * orange-red lighting); the minute timer rebuilds at sunset and sunrise.
  *
  * Boost is a PUSH signal, not a diagnostic poll: tracing cauliflowermossgrape's
  * car_vitals showed its boost reading is de.bmw.infotainment.drivingexcitement.FES /
@@ -259,7 +260,7 @@ const path = require('path');
 const sensors = require('./sensors');
 const { ClusterRender, DEFAULT_PATH } = require('./cluster_render_client.js');
 const Layouts = require('./layouts');
-const { THEMES, M_STRIPE, LIGHTS, VERDICT, color } = require('./hud_themes');
+const { THEMES, M_STRIPE, LIGHTS, VERDICT, color, nightTheme } = require('./hud_themes');
 const ShiftScore = require('./shift_score');
 const visible = require('./visible');
 const sun = require('./sun');
@@ -1329,7 +1330,7 @@ class HudApp {
     _garlandHoliday(name, shown) {
         if (['grid', 'wincal', 'mapcal'].indexOf(name) >= 0 || shown.some((w) => ['grid', 'gridlabels', 'swatch', 'swatchimg'].indexOf(w.type) >= 0)) return null;
         const base = this.layoutTheme && THEMES[this.layoutTheme];
-        if (base && base.holidays) return null;
+        if (base && (base.holidays || base.noGarland)) return null;     // Ribbon: its own editions; E36: none
         return this.holidayAt || null;
     }
 
@@ -1890,7 +1891,7 @@ class HudApp {
         this.hudHoliday = this._hudHoliday();      // the HUD's holiday colours (hud_holiday.js), null for none
         if (this.hudHoliday) this.theme = hudHoliday.theme(this.theme, this.hudHoliday);
         this.nightOn = this._nightDim();
-        if (this.nightOn) this.theme = dimTheme(this.theme, NIGHT_DIM);
+        if (this.nightOn) this.theme = nightTheme(this.theme, NIGHT_DIM);   // E36: its own night roles
         this.log.info('layout "' + layout.name + '", theme ' + this.theme.name + (this.layoutTheme ? '' : ' (' + this.setting('hudTheme') + ')'));
         // full screen (Nov 14 2026): the layout's strip widgets (design/genlib.py full_screen) cover BMW's strip except a
         // window over its gear letter, and the theme's own strip row ("stripRow" l / r) shows the clock, range and outside
@@ -2960,17 +2961,6 @@ class HudApp {
 }
 
 /** A theme with its whites and greys (any colour with little tint) at k brightness; colours keep theirs. */
-function dimTheme(theme, k) {
-    const out = {};
-    Object.keys(theme).forEach((key) => {
-        const c = theme[key];
-        const grey = Array.isArray(c) && c.length >= 3 && Math.max(c[0], c[1], c[2]) - Math.min(c[0], c[1], c[2]) < 40;
-        out[key] = grey ? [Math.round(c[0] * k), Math.round(c[1] * k), Math.round(c[2] * k)].concat(c.length > 3 ? [c[3]] : []) : c;
-    });
-    out.name = theme.name;
-    return out;
-}
-
 function pad2(n) { return n < 10 ? '0' + n : String(n); }
 function mib(bytes) { return (bytes / 1048576).toFixed(1) + ' MiB'; }
 
