@@ -16,6 +16,7 @@ const PETROL_G_PER_L = 745;      // grams in a litre of petrol
 const IDLE_LPH = 0.8;            // a 3-litre six at idle, warm
 const STILL_KMH = 3;             // under this the car stands: the economy needle reads the thirsty end
 const L100_PER_MPG = 235.215;    // L/100km x MPG (US) = 235.215
+const L100_MAX = 30;             // the EU face's thirsty end: kept finite so the needle eases in and out of it
 
 function isNum(v) { return typeof v === 'number' && !isNaN(v); }
 
@@ -40,22 +41,22 @@ function flowLph(powerKw) {
     return Math.max(IDLE_LPH, Math.max(0, powerKw) * BSFC_G_PER_KWH / PETROL_G_PER_L);
 }
 
-/** What the economy gauge reads: L/100km (us false) or US MPG (us true). Standing still (under 3 km/h) it reads the
- *  thirsty end: Infinity L/100km, 0 MPG. Null without data. */
+/** What the economy gauge reads: L/100km (us false, at most 30, the face's end) or US MPG (us true). Standing still
+ *  (under 3 km/h) it reads the thirsty end: 30 L/100km, 0 MPG. Null without data. */
 function economy(speedKmh, flow, us) {
     if (!isNum(speedKmh) || !isNum(flow)) return null;
-    if (speedKmh < STILL_KMH) return us ? 0 : Infinity;
+    if (speedKmh < STILL_KMH) return us ? 0 : L100_MAX;
     const l100 = flow / speedKmh * 100;
-    return us ? L100_PER_MPG / l100 : l100;
+    return us ? L100_PER_MPG / l100 : Math.min(L100_MAX, l100);
 }
 
-/** Exponential smoothing with time constant `ms`. The first value (and the first after an infinite one) is taken as
- *  is; null holds the last value. */
+/** Exponential smoothing with time constant `ms`. The first value (and the first after no data or an infinite one) is
+ *  taken as is; no data (null) drops the value, so the needle parks on its pin. */
 class Smooth {
     constructor(ms) { this.ms = ms; this.v = null; this.at = 0; }
 
     step(v, now) {
-        if (!isNum(v)) return this.v;
+        if (!isNum(v)) { this.v = null; return null; }
         if (!isNum(this.v) || !isFinite(this.v) || !isFinite(v)) {
             this.v = v;
         } else {

@@ -7,6 +7,7 @@ Newest first. Dates are when the build was pushed.
 - **Cluster Themes 0.20.0:**
   - **New theme: E36,** the BMW E36 328i cluster of the 90s, traced off photos of the real one: fuel, speed, revs and coolant dials with cream needles, the fuel-use gauge under the rev counter, the LCD with range, trip, clock and outside temperature, and the orange-red night lighting after sunset. The European face shows with km/h, the US face (MPH, MPG) with mph. Warning lights and turn arrows stay dark, and BMW's gear letter shows through the right light strip.
   - Not yet tested on a car.
+- **HUD Widgets 0.15.1:** ships the shared file the E36 theme added to the drawing engine (no change you can see).
 
 ## Nov 15 2026
 

@@ -6,6 +6,8 @@
  *     node tools/test_e36.js
  */
 const assert = require('assert');
+const fs = require('fs');
+const path = require('path');
 
 let failed = 0, passed = 0;
 function test(name, fn) {
@@ -59,10 +61,16 @@ test('economy: L/100km and MPG', () => {
     assert.strictEqual(e36.economy(100, 8, false), 8);
     assert.ok(near(e36.economy(100, 8, true), 29.4, 0.01), String(e36.economy(100, 8, true)));
 });
-test('economy: standing still reads the thirsty end', () => {
-    assert.strictEqual(e36.economy(1, 0.8, false), Infinity);
+test('economy: standing still reads the thirsty end (the EU face\'s 30, finite so the needle eases)', () => {
+    assert.strictEqual(e36.economy(1, 0.8, false), 30);
     assert.strictEqual(e36.economy(2, 0.8, true), 0);
-    assert.strictEqual(e36.economy(0, 0.8, false), Infinity);
+    assert.strictEqual(e36.economy(0, 0.8, false), 30);
+    assert.strictEqual(e36.economy(4, 2, false), 30);          // 50 L/100km: past the face's end
+});
+test('economy: creeping at 2..4 km/h moves the needle smoothly, no 15 degree jumps', () => {
+    const s = new e36.Smooth(1000);
+    const vals = [2, 3.2, 2.5, 3.5, 2.8].map((kmh, i) => s.step(e36.economy(kmh, 0.8, false), i * 50));
+    vals.forEach((v) => assert.ok(isFinite(v) && v > 26 && v <= 30, String(v)));
 });
 test('economy: no data gives null', () => {
     assert.strictEqual(e36.economy(null, 8, false), null);
@@ -70,12 +78,17 @@ test('economy: no data gives null', () => {
 });
 
 // --- smoothing and the trip readout ------------------------------------------------------------------------------------------
-test('Smooth: first value taken as is, then eases, null holds', () => {
+test('Smooth: first value taken as is, then eases', () => {
     const s = new e36.Smooth(1000);
     assert.strictEqual(s.step(10, 0), 10);
     const v = s.step(20, 1000);
     assert.ok(v > 15 && v < 20, String(v));
-    assert.strictEqual(s.step(null, 1500), v);
+});
+test('Smooth: no data drops the value (the needle parks), and the next value starts fresh', () => {
+    const s = new e36.Smooth(1000);
+    s.step(10, 0);
+    assert.strictEqual(s.step(null, 500), null);
+    assert.strictEqual(s.step(25, 1000), 25);
 });
 test('Smooth: Infinity in or out does not poison it', () => {
     const s = new e36.Smooth(1000);
@@ -117,10 +130,22 @@ test('E36 palette: every role the layout uses exists by day and by night', () =>
     assert.strictEqual(themes.THEMES.e36.noGarland, true);
 });
 
+// --- shipping ------------------------------------------------------------------------------------------------------
+test('shared/hud.js: every shared file it requires at load is in the "shared" list of each app that ships it', () => {
+    const src = fs.readFileSync(path.join(__dirname, '..', 'shared', 'hud.js'), 'utf8');
+    const need = [];
+    // the top-level requires (a lazy one inside a method, like the nav widget's, loads only where it is used)
+    src.replace(/^const [^=]+= require\('\.\/([a-z_0-9]+)(\.js)?'\)/gm, (m, n) => { need.push(n + '.js'); return m; });
+    ['cluster_themes', 'idrive_hud_widgets'].forEach((app) => {
+        const spec = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'apps', app, 'app.json'), 'utf8'));
+        if (spec.shared.indexOf('hud.js') < 0) return;
+        const missing = need.filter((f) => spec.shared.indexOf(f) < 0);
+        assert.deepStrictEqual(missing, [], app);
+    });
+});
+
 // --- the generated layout ------------------------------------------------------------------------------------------
-const fs = require('fs');
 const os = require('os');
-const path = require('path');
 const LAYOUT = path.join(__dirname, '..', 'apps', 'cluster_themes', 'hud', 'layouts', 'e36.json');
 const loadLayout = () => JSON.parse(fs.readFileSync(LAYOUT, 'utf8'));
 const overlaps = (w, r) => w.x < r[2] && w.x + w.w > r[0] && w.y < r[3] && w.y + w.h > r[1];
