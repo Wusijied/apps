@@ -128,6 +128,35 @@ test('E36 palette: every role the layout uses exists by day and by night', () =>
     assert.strictEqual(themes.THEMES.e36.noGarland, true);
 });
 
+// --- the generated layout ------------------------------------------------------------------------------------------
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+const LAYOUT = path.join(__dirname, '..', 'apps', 'cluster_themes', 'hud', 'layouts', 'e36.json');
+const loadLayout = () => JSON.parse(fs.readFileSync(LAYOUT, 'utf8'));
+const overlaps = (w, r) => w.x < r[2] && w.x + w.w > r[0] && w.y < r[3] && w.y + w.h > r[1];
+test('layout: valid for the 1920x720 cluster', () => {
+    // shared/hud_data.js opens the build's packed hud/ (kit/pack, only there in a build); validation never reads it
+    const hd = path.join(__dirname, '..', 'shared', 'hud_data.js');
+    require.cache[hd] = { id: hd, filename: hd, loaded: true, exports: { json: () => ({}) } };
+    const Layouts = require('../shared/layouts');
+    const L = new Layouts(fs.mkdtempSync(path.join(os.tmpdir(), 'e36-')), { warn() {}, info() {}, error() {} }, [1920, 720]);
+    L._validate(loadLayout(), 'e36');
+});
+test('layout: only the backdrop pieces reach under the hood or the belt light', () => {
+    const warns = require('../shared/visible').check(loadLayout().widgets, 'panel');
+    const bad = warns.filter((s) => !/^(dash|strip_)/.test(s));
+    assert.deepStrictEqual(bad, []);
+});
+test('layout: BMW\'s gear letter stays uncovered', () => {
+    const over = loadLayout().widgets.filter((w) => overlaps(w, [1380, 660, 1460, 720])).map((w) => w.id);
+    assert.deepStrictEqual(over, []);
+});
+test('layout: each face has its e36dash, on its own units', () => {
+    const ws = loadLayout().widgets.filter((w) => w.type === 'e36dash' && w.y === 0);
+    assert.ok(ws.some((w) => w.toggle === 'units=metric' && !w.mph), 'metric face');
+});
+
 if (failed) {
     console.log('e36: ' + failed + ' failed, ' + passed + ' passed');
     process.exit(1);

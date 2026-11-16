@@ -281,6 +281,7 @@ const smartTemps = require('./smart_temps');        // "showWhen": "abnormal", t
 const hudHoliday = require('./hud_holiday');
 const DemoShow = require('./demo_script');
 const Garland = require('./garland');               // the holiday light string (widget type "garland")
+const e36 = require('./e36');                       // the E36 theme's needle and economy maths (widget e36dash)
 const DEMO_AMBER = [255, 176, 40];      // the DEMO tag's colour
 const CAL_LAYOUTS = { grid: true, wincal: true, mapcal: true };
 // sharing the HUD with other kit apps (Redline, issue #4): kit/runtime/hud_claim.js, from cauliflowermossgrape's kit
@@ -339,6 +340,9 @@ const TILE_MAX = 14;       // half a flash: red, then the normal colour
 // widgets that show the shift cue (the reaction time is learned only while one of them is drawn)
 const MVIEW_RPM = 8000;            // the M view theme's rev scale: 0..8
 const MVIEW_SPEED = { us: 200, metric: 330 };
+// the E36 shader's colour roles, in u_col order (hud_themes.js e36)
+const E36_ROLES = ['bezel', 'face', 'dial', 'mark', 'needle', 'hub', 'red', 'blue', 'orange', 'arrow', 'well', 'strip', 'bg'];
+const E36_ZONE_COLORS = ['red', 'blue', 'orange'];      // u_zoneB's colour codes
 const VDASH_RPM = 8000;            // the Vector theme's rev counter: 0..8
 const MEDIA_IF = 'de.bmw.infotainment.hmi.hmimediastate.HmiMediaState';   // the head unit's now playing (front)
 const MEDIA_TYPES = { 1: 'ARTIST', 2: 'ALBUM', 3: 'TITLE' };
@@ -2156,6 +2160,48 @@ class HudApp {
             c.uniform(ref, 'u_panel', pn ? [pn[0][0] - w.x, pn[0][1] - w.y, pn[1][0] - w.x, pn[1][1] - w.y] : [0, 0, 0, 1]);
             c.uniform(ref, 'u_panelB', pn ? [pn[2][0] - w.x, pn[2][1] - w.y, pn[3], 0] : [0, 2, 0, 0]);
             c.uniform(ref, 'u_oval', [isNum(w.holeOval) ? w.holeOval : 0]);
+        } else if (w.type === 'e36dash') {
+            // the E36 cluster (tools/gen_e36.py): every position in target px, the layer's own top-left in u_origin
+            const pad = (arr, n, fill) => { const out = arr.slice(0, n); while (out.length < n) out.push(fill); return out; };
+            const flat = (rows) => [].concat.apply([], rows);
+            const F = w.face, D = pad(w.dials || [], 4, null);
+            c.uniform(ref, 'u_size', [w.w, w.h]);
+            c.uniform(ref, 'u_origin', [w.x, w.y]);
+            c.uniform(ref, 'u_col', flat(E36_ROLES.map((r) => rgb(color(t, r)))), { type: 'vec3' });
+            c.uniform(ref, 'u_face', F.box);
+            c.uniform(ref, 'u_faceB', [F.radius, F.arch[0], F.arch[1], F.arch[2]]);
+            c.uniform(ref, 'u_bezel', [F.bezel || 0]);
+            c.uniform(ref, 'u_dial', flat(D.map((d) => (d ? [d.c[0], d.c[1], d.r, d.cut || 0] : [0, 0, 0, 0]))), { type: 'vec4' });
+            c.uniform(ref, 'u_piv', flat(D.map((d) => (d ? [d.pivot[0], d.pivot[1], d.hub, d.tail || 0] : [0, 0, 0, 0]))), { type: 'vec4' });
+            c.uniform(ref, 'u_ndl', flat(D.map((d) => (d ? [d.needle[0], d.needle[1]] : [0, 0]))), { type: 'vec2' });
+            const T = pad(w.ticks || [], 9, null);      // [dial, first angle, last angle, count, outer r, length, width]
+            c.uniform(ref, 'u_tick', flat(T.map((g) => (g ? [g[1], g[2], g[3], g[4]] : [0, 0, 0, 0]))), { type: 'vec4' });
+            c.uniform(ref, 'u_tickB', flat(T.map((g) => (g ? [g[5], g[6], g[0], 0] : [0, 0, -1, 0]))), { type: 'vec4' });
+            const Z = pad(w.zones || [], 6, null);      // [dial, from angle, to angle, inner r, outer r, colour, stripes]
+            c.uniform(ref, 'u_zone', flat(Z.map((z) => (z ? [z[1], z[2], z[3], z[4]] : [0, 0, 0, 0]))), { type: 'vec4' });
+            c.uniform(ref, 'u_zoneB', flat(Z.map((z) => (z ? [z[0], E36_ZONE_COLORS.indexOf(z[5]) + 4 * (z[6] || 0)] : [-1, -1]))), { type: 'vec2' });
+            const Wn = pad(w.windows || [], 3, null);   // [x, y, w, h, radius]
+            c.uniform(ref, 'u_win', flat(Wn.map((g) => (g ? g.slice(0, 4) : [0, 0, 0, 0]))), { type: 'vec4' });
+            c.uniform(ref, 'u_winR', Wn.map((g) => (g ? g[4] : 0)));
+            c.uniform(ref, 'u_strip', flat(pad(w.strips || [], 3, [0, 0, 0, 0])), { type: 'vec4' });
+            c.uniform(ref, 'u_stripR', [w.stripR || 0]);
+            c.uniform(ref, 'u_arrow', flat(pad(w.arrows || [], 2, [0, 0, 0, 0])), { type: 'vec4' });
+            const K = w.knob || [0, 0, 0], S = w.sensor || [0, 0, 0];
+            c.uniform(ref, 'u_knob', [K[0], K[1], K[2], S[2]]);
+            c.uniform(ref, 'u_sensor', [S[0], S[1]]);
+        } else if (w.type === 'e36econ') {
+            // the E36 economy gauge: its own small layer over the rev counter's lower cut
+            const E = w.econ, T = w.tach, tk = E.ticks.slice(0, 16);
+            while (tk.length < 16) tk.push([0, 0, 0, 0]);
+            c.uniform(ref, 'u_size', [w.w, w.h]);
+            c.uniform(ref, 'u_origin', [w.x, w.y]);
+            c.uniform(ref, 'u_mark', rgb(color(t, 'mark')));
+            c.uniform(ref, 'u_needle', rgb(color(t, 'needle')));
+            c.uniform(ref, 'u_line', rgb(color(t, 'face')));
+            c.uniform(ref, 'u_econ', [E.pivot[0], E.pivot[1], E.len, E.top]);
+            c.uniform(ref, 'u_tach', [T[0], T[1], T[2], 0]);
+            c.uniform(ref, 'u_econT', [].concat.apply([], tk), { type: 'vec4' });
+            x.econ = new e36.Smooth(1000);
         } else if (w.type === 'vdash') {
             // the bracket lines (target px): [x0, y0, x1, y1, width, brightness 0..1]
             const seg = [], segW = [];
@@ -2737,6 +2783,30 @@ class HudApp {
             x.c.uniform(x.ref, 'u_rpm', [vals[1]]);
             x.c.uniform(x.ref, 'u_fuel', [vals[2]]);
             x.c.uniform(x.ref, 'u_oil', [vals[3]]);
+        } else if (w.type === 'e36dash') {
+            // the needles: each dial's value read off its traced scale ([value, angle] pairs); no data parks it on its pin
+            const sp = this._raw('speed');
+            const val = (sig) => (sig === 'speed' ? (isNum(sp) && w.mph ? sp * 0.621371 : sp) : this._raw(sig));
+            const ang = [0, 1, 2, 3].map((i) => {
+                const d = (w.dials || [])[i];
+                if (!d) return 0;
+                const a = e36.frac(val(d.signal), d.map);
+                return Math.round((a === null ? d.rest : a) * 10) / 10;
+            });
+            const key = ang.join('|');
+            if (!force && key === x.last) return;
+            x.last = key;
+            x.c.uniform(x.ref, 'u_ang', ang);
+        } else if (w.type === 'e36econ') {
+            // estimated from the engine's power (shared/e36.js): the car has no fuel-flow signal
+            const E = w.econ, pw = this._raw('powerPct'), peak = (this.config.engine || {}).powerKw;
+            const flow = isNum(pw) && isNum(peak) ? e36.flowLph(pw / 100 * peak) : null;
+            const v = x.econ.step(e36.economy(this._raw('speed'), flow, !!w.mph), now);
+            const a = e36.frac(v, E.map);
+            const ea = Math.round((a === null ? E.rest : a) * 10) / 10;
+            if (!force && ea === x.last) return;
+            x.last = ea;
+            x.c.uniform(x.ref, 'u_econB', [ea, E.width]);
         } else if (w.type === 'vdash') {
             const T = w.tach, q = (v) => Math.round(Math.min(1, Math.max(0, v)) * 400) / 400;
             const frac = (g) => { const v = g && g.signal ? this._raw(g.signal) : null; return isNum(v) ? q((v - g.min) / (g.max - g.min)) : 0; };

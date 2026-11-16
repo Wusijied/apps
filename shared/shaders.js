@@ -1739,4 +1739,193 @@ void main() {
 }
 `;
 
-module.exports = { shiftbar: SHIFTBAR, arc: ARC, revbar: REVBAR, lights: LIGHTS, fill: FILL, box: BOX, grid: GRID, segbar: SEGBAR, mdash: MDASH, mtach: MTACH, sdash: SDASH, boxes: BOXES, atext: ATEXT, meter: METER, gmeter: GMETER, revarc: REVARC, tiles: TILES, ribbon: RIBBON, deco: DECO, mview: MVIEW, vdash: VDASH };
+const E36DASH = `// The E36 theme (layouts e36.json, made by tools/gen_e36.py) in one cluster-render "effect" layer (GLSL ES 1.00): the
+// BMW E36 328i cluster of the 90s. The black bezel and the dark grey face (a rounded box under a wide arch), four black
+// dials (fuel, speed, revs, coolant) with their ticks, coloured zones (the red rev zone, the fuel and coolant blocks),
+// the LCD and lamp windows, the lamp strips, the (unlit) turn arrows, the trip knob and the light sensor, then the
+// needles with their counterweights and hubs. The printed figures are text widgets on top; the economy gauge is its
+// own small layer (e36econ). Every position is in target px; u_origin is this layer's own top-left, so the strip row's pieces (the layer cut round BMW's gear letter) draw the same picture. v_uv (0,0) is the top-left.
+// Kept light for the cluster's GPU (tools/shader_budget.js): no lookups inside loops, each loop skips what is far away.
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
+precision mediump float;
+#endif
+varying vec2 v_uv;
+uniform vec2 u_size;
+uniform vec2 u_origin;
+uniform vec3 u_col[13];    // bezel, face, dial, mark, needle, hub, red, blue, orange, arrow, well, strip, bg
+uniform vec4 u_face;       // the face's box: x0, y0, x1, y1
+uniform vec4 u_faceB;      // its corner radius, the arch's centre x, y and radius
+uniform float u_bezel;     // the black bezel round the face, px
+uniform vec4 u_dial[4];    // fuel, speed, revs, coolant: centre x, y, radius, flat cut y below (0 = none)
+uniform vec4 u_piv[4];     // their needles: pivot x, y, hub radius, counterweight length
+uniform vec2 u_ndl[4];     // needle length, width (length 0 = none)
+uniform vec4 u_ang;        // the four needle angles, degrees clockwise from 12 o'clock
+uniform vec4 u_tick[9];    // tick groups: first angle, last angle, count (0 = none), outer radius
+uniform vec4 u_tickB[9];   // length, width, dial index (they turn round its pivot), (unused)
+uniform vec4 u_zone[6];    // zones: from angle, to angle, inner radius, outer radius
+uniform vec2 u_zoneB[6];   // dial index (round its pivot); colour 0 red, 1 blue, 2 orange (-1 none) + 4 x stripes
+uniform vec4 u_win[3];     // windows (LCD, top lamp, ASC): x, y, w, h (w 0 = none)
+uniform vec3 u_winR;       // their corner radii
+uniform vec4 u_strip[3];   // the lamp strips: x, y, w, h
+uniform float u_stripR;    // their corner radius
+uniform vec4 u_arrow[2];   // the turn arrows: centre x, y, size, direction (-1 left, 1 right)
+uniform vec4 u_knob;       // the trip knob x, y, r; w: the light sensor's radius
+uniform vec2 u_sensor;     // the light sensor x, y
+
+float cov(float d) { return clamp(0.5 - d, 0.0, 1.0); }
+vec3 put(vec3 c, vec3 col, float a) { return mix(c, col, clamp(a, 0.0, 1.0)); }
+float boxd(vec2 p, vec4 r, float rad) {
+    vec2 hs = r.zw * 0.5;
+    vec2 q = abs(p - (r.xy + hs)) - hs + rad;
+    return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - rad;
+}
+vec2 dir(float a) { float r = radians(a); return vec2(sin(r), -cos(r)); }
+
+void main() {
+    vec2 p = v_uv * u_size + u_origin;
+    vec3 c = u_col[12];
+    vec3 BEZEL = u_col[0], FACE = u_col[1], MARK = u_col[3];
+
+    // the bezel and the face: a rounded box under a wide arch
+    float fd = max(boxd(p, vec4(u_face.xy, u_face.zw - u_face.xy), u_faceB.x), length(p - u_faceB.yz) - u_faceB.w);
+    c = put(c, BEZEL, cov(fd - u_bezel));
+    c = put(c, FACE, cov(fd));
+
+    // the lamp strips
+    for (int i = 0; i < 3; i++) {
+        c = put(c, u_col[11], cov(boxd(p, u_strip[i], u_stripR)) * step(0.5, u_strip[i].z));
+    }
+
+    // the dials: black discs with a dark rim, cut flat at the bottom where the LCD and the economy gauge sit. They never
+    // overlap, so the one this pixel is in (if any) is found once and only its ticks, zones and needle are drawn.
+    float K = -1.0;
+    vec4 V = vec4(0.0);
+    vec2 N = vec2(0.0);
+    float A = 0.0;
+    for (int i = 0; i < 4; i++) {
+        vec4 g = u_dial[i];
+        float dc = length(p - g.xy) - g.z;
+        if (dc > 6.0) continue;
+        K = float(i); V = u_piv[i]; N = u_ndl[i];
+        A = i == 0 ? u_ang.x : i == 1 ? u_ang.y : i == 2 ? u_ang.z : u_ang.w;
+        float cut = g.w > 0.0 ? p.y - g.w : -1.0;
+        c = put(c, BEZEL, cov(dc - 4.0) * cov(cut));
+        c = put(c, u_col[2], cov(max(dc, cut)));
+        if (g.w > 0.0) c = put(c, FACE * 1.15, cov(max(dc + 3.0, -cut)));    // the lighter bevel under the cut
+    }
+    if (K >= 0.0) {
+        vec2 d = p - V.xy;
+        float r = length(d), a = degrees(atan(d.x, -d.y));
+
+        // the zones (the red rev zone and its stripes, the fuel and coolant blocks)
+        for (int i = 0; i < 6; i++) {
+            vec2 b = u_zoneB[i];
+            if (b.x != K || b.y < 0.0) continue;
+            vec4 z = u_zone[i];
+            float dd = max(radians(max(z.x - a, a - z.y)) * r, max(z.z - r, r - z.w));
+            float n = floor(b.y / 4.0), k = b.y - n * 4.0;
+            if (n > 0.0) dd = max(dd, (abs(fract((a - z.x) / (z.y - z.x) * n) - 0.3) - 0.3) * radians(z.y - z.x) / n * r);
+            c = put(c, k < 0.5 ? u_col[6] : k < 1.5 ? u_col[7] : u_col[8], cov(dd));
+        }
+
+        // the ticks, evenly spaced in each group
+        for (int i = 0; i < 9; i++) {
+            vec4 g = u_tick[i], h = u_tickB[i];
+            if (h.z != K || g.z <= 0.0) continue;
+            float sp = g.z > 1.0 ? (g.y - g.x) / (g.z - 1.0) : 1.0;
+            float k = g.z > 1.0 ? clamp(floor((a - g.x) / sp + 0.5), 0.0, g.z - 1.0) : 0.0;
+            c = put(c, MARK, cov(max(abs(radians(a - (g.x + k * sp))) * r - h.y * 0.5, max(g.w - h.x - r, r - g.w))));
+        }
+
+        // the needle: a tapered bar from the pivot, a dark counterweight behind it, the hub over both
+        vec2 u = dir(A);
+        float t = dot(d, u), side = abs(d.x * u.y - d.y * u.x);
+        float wt = mix(N.y, N.y * 0.55, clamp(t / N.x, 0.0, 1.0)) * 0.5;
+        c = put(c, u_col[5] * 0.55, cov(max(side - N.y * 1.1, max(t, -t - V.w))));
+        c = put(c, u_col[4], cov(max(side - wt, max(-t, t - N.x))));
+        c = put(c, BEZEL, cov(r - V.z - 1.5));
+        c = put(c, u_col[5], cov(r - V.z));
+    }
+
+    // the windows (LCD, top lamp, ASC), over the dials' bevels
+    for (int i = 0; i < 3; i++) {
+        float rad = i == 0 ? u_winR.x : i == 1 ? u_winR.y : u_winR.z;
+        float d = boxd(p, u_win[i], rad);
+        float on = step(0.5, u_win[i].z);
+        c = put(c, FACE * 0.6, cov(d - 2.0) * on);
+        c = put(c, u_col[10], cov(d) * on);
+    }
+
+    // the turn arrows (never lit: the app can't read them)
+    for (int i = 0; i < 2; i++) {
+        vec4 w = u_arrow[i];
+        vec2 q = (p - w.xy) / max(w.z, 1.0);
+        if (w.z <= 0.0 || abs(q.x) > 0.8 || abs(q.y) > 0.8) continue;
+        q.x *= -w.w;                                   // point the arrow left in q
+        float tail = boxd(q, vec4(0.0, -0.2, 0.5, 0.4), 0.0);
+        float head = max(max(-q.x - 0.5, q.x - 0.05), abs(q.y) - (q.x + 0.5) * 0.85);
+        c = put(c, u_col[9], cov(min(tail, head) * w.z));
+    }
+
+    // the trip knob and the light sensor
+    float kd = length(p - u_knob.xy);
+    c = put(c, BEZEL, cov(kd - u_knob.z - 3.0));
+    c = put(c, u_col[5] * 1.2, cov(kd - u_knob.z));
+    c = put(c, u_col[5] * 0.6, cov(kd - u_knob.z * 0.55));
+    float sd = length(p - u_sensor);
+    c = put(c, FACE * 1.3, cov(sd - u_knob.w - 2.0));
+    c = put(c, u_col[10], cov(sd - u_knob.w));
+
+    gl_FragColor = vec4(c, 1.0);
+}
+`;
+
+const E36ECON = `// The E36 theme's economy gauge (widget e36econ, tools/gen_e36.py): its own small layer over the rev counter's lower
+// cut, so its tick loop runs over that window only. See-through except its window's top line, the ticks (round a
+// pivot hidden above the window, unevenly spaced: L/100km or MPG) and the needle. Positions in target px, u_origin
+// the layer's top-left. v_uv (0,0) is the top-left.
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
+precision mediump float;
+#endif
+varying vec2 v_uv;
+uniform vec2 u_size;
+uniform vec2 u_origin;
+uniform vec3 u_mark;       // the ticks' colour
+uniform vec3 u_needle;     // the needle's
+uniform vec3 u_line;       // the window's top line
+uniform vec4 u_econ;       // pivot x, y, needle length, the window's top y
+uniform vec4 u_tach;       // the rev counter's centre x, y, radius (the window ends at its edge)
+uniform vec2 u_econB;      // the needle's angle (degrees clockwise from 12 o'clock), width
+uniform vec4 u_econT[16];  // the ticks round the pivot: angle, outer radius, inner radius, width (width 0 = none)
+
+float cov(float d) { return clamp(0.5 - d, 0.0, 1.0); }
+
+void main() {
+    vec2 p = v_uv * u_size + u_origin;
+    float inDial = cov(length(p - u_tach.xy) - u_tach.z + 5.0);
+    vec2 ed = p - u_econ.xy;
+    float er = length(ed);
+    float a = degrees(atan(ed.x, -ed.y));
+    vec3 c = u_mark;
+    float al = 0.0;
+    float line = cov(abs(p.y - u_econ.w) - 1.2);
+    c = mix(c, u_line, line); al = max(al, line);
+    for (int i = 0; i < 16; i++) {
+        vec4 t = u_econT[i];
+        float da = abs(mod(a - t.x + 180.0, 360.0) - 180.0);
+        float m = cov(max(radians(da) * er - t.w * 0.5, max(t.z - er, er - t.y))) * step(0.01, t.w);
+        c = mix(c, u_mark, m); al = max(al, m);
+    }
+    vec2 u = vec2(sin(radians(u_econB.x)), -cos(radians(u_econB.x)));
+    float t = dot(ed, u), side = abs(ed.x * u.y - ed.y * u.x);
+    float n = cov(max(side - u_econB.y * 0.5, max(-t, t - u_econ.z))) * cov(u_econ.w + 2.0 - p.y);
+    c = mix(c, u_needle, n); al = max(al, n);
+    gl_FragColor = vec4(c, al * inDial);
+}
+`;
+
+module.exports = { shiftbar: SHIFTBAR, arc: ARC, revbar: REVBAR, lights: LIGHTS, fill: FILL, box: BOX, grid: GRID, segbar: SEGBAR, mdash: MDASH, mtach: MTACH, sdash: SDASH, boxes: BOXES, atext: ATEXT, meter: METER, gmeter: GMETER, revarc: REVARC, tiles: TILES, ribbon: RIBBON, deco: DECO, mview: MVIEW, vdash: VDASH, e36dash: E36DASH, e36econ: E36ECON };
