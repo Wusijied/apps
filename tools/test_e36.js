@@ -155,6 +155,9 @@ test('layout: BMW\'s gear letter stays uncovered', () => {
 test('layout: each face has its e36dash, on its own units', () => {
     const ws = loadLayout().widgets.filter((w) => w.type === 'e36dash' && w.y === 0);
     assert.ok(ws.some((w) => w.toggle === 'units=metric' && !w.mph), 'metric face');
+    assert.ok(ws.some((w) => w.toggle === 'units=us' && w.mph), 'mph face');
+    const ec = loadLayout().widgets.filter((w) => w.type === 'e36econ').map((w) => w.toggle).sort();
+    assert.deepStrictEqual(ec, ['units=metric', 'units=us']);
 });
 
 if (failed) {

@@ -1083,6 +1083,1186 @@
       "h": 41,
       "color": "mark",
       "toggle": "units=metric"
+    },
+    {
+      "id": "dash_us",
+      "type": "e36dash",
+      "class": "content",
+      "z": 0,
+      "x": 0,
+      "y": 0,
+      "w": 1920,
+      "h": 660,
+      "toggle": "units=us",
+      "mph": true,
+      "face": {
+        "box": [
+          150.0,
+          188.8,
+          1770.0,
+          733.3
+        ],
+        "radius": 171.0,
+        "arch": [
+          960.0,
+          1826.8,
+          1638.0
+        ],
+        "bezel": 36.0
+      },
+      "dials": [
+        {
+          "signal": "fuel",
+          "c": [
+            372.3,
+            526.3
+          ],
+          "r": 118.8,
+          "cut": 0,
+          "pivot": [
+            364.2,
+            577.6
+          ],
+          "hub": 21.6,
+          "tail": 16.2,
+          "needle": [
+            117.0,
+            6.3
+          ],
+          "map": [
+            [
+              0,
+              -43.2
+            ],
+            [
+              1,
+              43.2
+            ]
+          ],
+          "rest": -52
+        },
+        {
+          "signal": "speed",
+          "c": [
+            730.5,
+            452.5
+          ],
+          "r": 214.2,
+          "cut": 539.8,
+          "pivot": [
+            730.5,
+            452.5
+          ],
+          "hub": 29.7,
+          "tail": 45.0,
+          "needle": [
+            205.2,
+            8.1
+          ],
+          "map": [
+            [
+              0,
+              -121
+            ],
+            [
+              20,
+              -102.3
+            ],
+            [
+              150,
+              108.63
+            ]
+          ],
+          "rest": -121
+        },
+        {
+          "signal": "rpm",
+          "c": [
+            1203.0,
+            452.5
+          ],
+          "r": 214.2,
+          "cut": 652.3,
+          "pivot": [
+            1203.0,
+            452.5
+          ],
+          "hub": 29.7,
+          "tail": 45.0,
+          "needle": [
+            205.2,
+            8.1
+          ],
+          "map": [
+            [
+              0,
+              -116.6
+            ],
+            [
+              1000,
+              -92.0
+            ],
+            [
+              2000,
+              -57.23
+            ],
+            [
+              3000,
+              -22.46
+            ],
+            [
+              4000,
+              12.31
+            ],
+            [
+              5000,
+              47.08
+            ],
+            [
+              6000,
+              81.85
+            ],
+            [
+              7000,
+              116.62
+            ],
+            [
+              7600,
+              125
+            ]
+          ],
+          "rest": -117
+        },
+        {
+          "signal": "coolant",
+          "c": [
+            1551.3,
+            526.3
+          ],
+          "r": 118.8,
+          "cut": 0,
+          "pivot": [
+            1552.2,
+            577.6
+          ],
+          "hub": 21.6,
+          "tail": 16.2,
+          "needle": [
+            117.0,
+            6.3
+          ],
+          "map": [
+            [
+              40,
+              -49.6
+            ],
+            [
+              50,
+              -38
+            ],
+            [
+              90,
+              0
+            ],
+            [
+              120,
+              41
+            ],
+            [
+              130,
+              49.6
+            ]
+          ],
+          "rest": -52
+        }
+      ],
+      "ticks": [
+        [
+          1,
+          -118.525,
+          108.62500000000001,
+          15,
+          205.2,
+          25.65,
+          7.47
+        ],
+        [
+          1,
+          -110.4125,
+          100.5125,
+          14,
+          205.2,
+          14.94,
+          3.15
+        ],
+        [
+          1,
+          -114.58651105,
+          107.2118674,
+          23,
+          132.3,
+          9.63,
+          2.7
+        ],
+        [
+          2,
+          -116.6,
+          -116.6,
+          1,
+          210.6,
+          23.4,
+          7.2
+        ],
+        [
+          2,
+          -92,
+          116.6,
+          7,
+          210.6,
+          23.4,
+          7.2
+        ],
+        [
+          2,
+          -104.3,
+          -104.3,
+          1,
+          210.6,
+          19.8,
+          2.7
+        ],
+        [
+          2,
+          -74.6,
+          99.2,
+          6,
+          210.6,
+          19.8,
+          2.7
+        ],
+        [
+          0,
+          -43.2,
+          43.2,
+          5,
+          124.2,
+          18.0,
+          4.05
+        ],
+        [
+          3,
+          -49.6,
+          49.6,
+          4,
+          115.2,
+          16.2,
+          4.05
+        ]
+      ],
+      "zones": [
+        [
+          2,
+          92.28,
+          116.6,
+          179.1,
+          203.4,
+          "red",
+          0
+        ],
+        [
+          2,
+          82.55,
+          90.89,
+          184.5,
+          203.4,
+          "red",
+          3
+        ],
+        [
+          0,
+          -41,
+          -29,
+          100.8,
+          126.0,
+          "orange",
+          0
+        ],
+        [
+          3,
+          -44,
+          -32,
+          93.6,
+          118.8,
+          "blue",
+          0
+        ],
+        [
+          3,
+          35,
+          47,
+          93.6,
+          118.8,
+          "red",
+          0
+        ]
+      ],
+      "windows": [
+        [
+          615.3,
+          541.6,
+          241.2,
+          85.5,
+          5.4
+        ],
+        [
+          883.5,
+          214.0,
+          175.5,
+          55.8,
+          5.4
+        ],
+        [
+          921.3,
+          602.8,
+          82.8,
+          49.5,
+          5.4
+        ]
+      ],
+      "strips": [
+        [
+          438.0,
+          659.5,
+          297.0,
+          58.5
+        ],
+        [
+          748.5,
+          659.5,
+          423.0,
+          58.5
+        ],
+        [
+          1185.0,
+          659.5,
+          297.0,
+          58.5
+        ]
+      ],
+      "stripR": 10.8,
+      "arrows": [
+        [
+          471.3,
+          367.9,
+          49.5,
+          -1
+        ],
+        [
+          1465.8,
+          367.9,
+          49.5,
+          1
+        ]
+      ],
+      "knob": [
+        475.8,
+        634.3,
+        19.8
+      ],
+      "sensor": [
+        1399.2,
+        620.8,
+        14.4
+      ]
+    },
+    {
+      "id": "econ_us",
+      "type": "e36econ",
+      "class": "content",
+      "z": 0,
+      "x": 1009,
+      "y": 545,
+      "w": 388,
+      "h": 108,
+      "toggle": "units=us",
+      "mph": true,
+      "tach": [
+        1203.0,
+        452.5,
+        214.2
+      ],
+      "econ": {
+        "pivot": [
+          1214.2,
+          502.7
+        ],
+        "top": 548.7,
+        "len": 135.0,
+        "width": 4.05,
+        "ticks": [
+          [
+            -118.18,
+            183.25,
+            148.5,
+            10.69
+          ],
+          [
+            -125.72,
+            172.28,
+            141.83,
+            10.69
+          ],
+          [
+            -136.34,
+            161.84,
+            128.57,
+            4.28
+          ],
+          [
+            -149.5,
+            138.2,
+            119.93,
+            3.74
+          ],
+          [
+            -158.77,
+            129.28,
+            114.47,
+            3.74
+          ],
+          [
+            -174.65,
+            121.34,
+            108.47,
+            3.74
+          ],
+          [
+            -209.48,
+            139.52,
+            108.07,
+            4.28
+          ],
+          [
+            -236.3,
+            153.42,
+            116.36,
+            5.35
+          ]
+        ],
+        "map": [
+          [
+            8,
+            -236.3
+          ],
+          [
+            10,
+            -209.48
+          ],
+          [
+            15,
+            -174.65
+          ],
+          [
+            20,
+            -158.77
+          ],
+          [
+            25,
+            -149.5
+          ],
+          [
+            40,
+            -136.34
+          ]
+        ],
+        "rest": -113
+      }
+    },
+    {
+      "id": "tus_0",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 1039,
+      "y": 519,
+      "w": 21,
+      "h": 31,
+      "text": "0",
+      "font": "e_rpm",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "tus_1",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 1012,
+      "y": 438,
+      "w": 21,
+      "h": 31,
+      "text": "1",
+      "font": "e_rpm",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "tus_2",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 1050,
+      "y": 353,
+      "w": 21,
+      "h": 31,
+      "text": "2",
+      "font": "e_rpm",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "tus_3",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 1125,
+      "y": 297,
+      "w": 21,
+      "h": 31,
+      "text": "3",
+      "font": "e_rpm",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "tus_4",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 1225,
+      "y": 292,
+      "w": 21,
+      "h": 31,
+      "text": "4",
+      "font": "e_rpm",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "tus_5",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 1306,
+      "y": 339,
+      "w": 21,
+      "h": 31,
+      "text": "5",
+      "font": "e_rpm",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "tus_6",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 1352,
+      "y": 426,
+      "w": 21,
+      "h": 31,
+      "text": "6",
+      "font": "e_rpm",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "tus_7",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 1341,
+      "y": 519,
+      "w": 21,
+      "h": 31,
+      "text": "7",
+      "font": "e_rpm",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "tus_8",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 1174,
+      "y": 353,
+      "w": 47,
+      "h": 23,
+      "text": "1/min",
+      "font": "e_lab",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "tus_9",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 1174,
+      "y": 375,
+      "w": 48,
+      "h": 23,
+      "text": "x1000",
+      "font": "e_lab",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "tus_10",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 562,
+      "y": 476,
+      "w": 34,
+      "h": 27,
+      "text": "20",
+      "font": "e_spd",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "tus_11",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 566,
+      "y": 390,
+      "w": 34,
+      "h": 27,
+      "text": "40",
+      "font": "e_spd",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "tus_12",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 618,
+      "y": 321,
+      "w": 34,
+      "h": 27,
+      "text": "60",
+      "font": "e_spd",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "tus_13",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 701,
+      "y": 283,
+      "w": 34,
+      "h": 27,
+      "text": "80",
+      "font": "e_spd",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "tus_14",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 784,
+      "y": 302,
+      "w": 49,
+      "h": 27,
+      "text": "100",
+      "font": "e_spd",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "tus_15",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 845,
+      "y": 359,
+      "w": 49,
+      "h": 27,
+      "text": "120",
+      "font": "e_spd",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "tus_16",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 870,
+      "y": 445,
+      "w": 49,
+      "h": 27,
+      "text": "140",
+      "font": "e_spd",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "tus_17",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 631,
+      "y": 484,
+      "w": 22,
+      "h": 23,
+      "text": "20",
+      "font": "e_lab",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "tus_18",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 626,
+      "y": 452,
+      "w": 22,
+      "h": 23,
+      "text": "40",
+      "font": "e_lab",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "tus_19",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 628,
+      "y": 420,
+      "w": 22,
+      "h": 23,
+      "text": "60",
+      "font": "e_lab",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "tus_20",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 642,
+      "y": 392,
+      "w": 22,
+      "h": 23,
+      "text": "80",
+      "font": "e_lab",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "tus_21",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 663,
+      "y": 366,
+      "w": 31,
+      "h": 23,
+      "text": "100",
+      "font": "e_lab",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "tus_22",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 695,
+      "y": 349,
+      "w": 31,
+      "h": 23,
+      "text": "120",
+      "font": "e_lab",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "tus_23",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 728,
+      "y": 344,
+      "w": 31,
+      "h": 23,
+      "text": "140",
+      "font": "e_lab",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "tus_24",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 764,
+      "y": 356,
+      "w": 31,
+      "h": 23,
+      "text": "160",
+      "font": "e_lab",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "tus_25",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 792,
+      "y": 377,
+      "w": 31,
+      "h": 23,
+      "text": "180",
+      "font": "e_lab",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "tus_26",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 807,
+      "y": 407,
+      "w": 31,
+      "h": 23,
+      "text": "200",
+      "font": "e_lab",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "tus_27",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 817,
+      "y": 439,
+      "w": 31,
+      "h": 23,
+      "text": "220",
+      "font": "e_lab",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "tus_28",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 813,
+      "y": 470,
+      "w": 31,
+      "h": 23,
+      "text": "240",
+      "font": "e_lab",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "tus_29",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 718,
+      "y": 392,
+      "w": 34,
+      "h": 18,
+      "text": "km/h",
+      "font": "e_sm",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "tus_30",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 720,
+      "y": 508,
+      "w": 34,
+      "h": 23,
+      "text": "MPH",
+      "font": "e_lab",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "tus_31",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 730,
+      "y": 531,
+      "w": 13,
+      "h": 14,
+      "text": "EG",
+      "font": "e_xs",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "tus_32",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 1182,
+      "y": 560,
+      "w": 26,
+      "h": 18,
+      "text": "MPG",
+      "font": "e_sm",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "tus_33",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 1114,
+      "y": 569,
+      "w": 28,
+      "h": 23,
+      "text": "40",
+      "font": "e_us",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "tus_34",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 1140,
+      "y": 579,
+      "w": 28,
+      "h": 23,
+      "text": "25",
+      "font": "e_us",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "tus_35",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 1164,
+      "y": 583,
+      "w": 28,
+      "h": 23,
+      "text": "20",
+      "font": "e_us",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "tus_36",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 1190,
+      "y": 583,
+      "w": 28,
+      "h": 23,
+      "text": "15",
+      "font": "e_us",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "tus_37",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 1244,
+      "y": 570,
+      "w": 28,
+      "h": 23,
+      "text": "10",
+      "font": "e_us",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "tus_38",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 1288,
+      "y": 548,
+      "w": 16,
+      "h": 23,
+      "text": "8",
+      "font": "e_us",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "tus_39",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 272,
+      "y": 457,
+      "w": 13,
+      "h": 23,
+      "text": "0",
+      "font": "e_lab",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "tus_40",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 350,
+      "y": 423,
+      "w": 27,
+      "h": 29,
+      "text": "\u00bd",
+      "font": "e_frac",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "tus_41",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 431,
+      "y": 455,
+      "w": 25,
+      "h": 29,
+      "text": "\u215f",
+      "font": "e_frac",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "tus_42",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 263,
+      "y": 521,
+      "w": 200,
+      "h": 23,
+      "text": "UNLEADED GASOLINE",
+      "font": "e_word",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "tus_43",
+      "type": "text",
+      "class": "content",
+      "z": 5,
+      "x": 337,
+      "y": 610,
+      "w": 53,
+      "h": 23,
+      "text": "ONLY",
+      "font": "e_word",
+      "color": "mark",
+      "align": "center",
+      "toggle": "units=us"
+    },
+    {
+      "id": "ius_fuel",
+      "type": "icon",
+      "icon": "fuel",
+      "class": "content",
+      "z": 5,
+      "x": 350,
+      "y": 483,
+      "w": 36,
+      "h": 36,
+      "color": "mark",
+      "toggle": "units=us"
+    },
+    {
+      "id": "ius_e36cool",
+      "type": "icon",
+      "icon": "e36cool",
+      "class": "content",
+      "z": 5,
+      "x": 1527,
+      "y": 487,
+      "w": 41,
+      "h": 41,
+      "color": "mark",
+      "toggle": "units=us"
     }
   ]
 }

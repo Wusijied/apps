@@ -15,6 +15,7 @@ The figures and labels are text widgets on top (fonts e_num, e_sm, e_lcd: tools/
 
 Edit this file, not the JSON.
 """
+import copy
 import json
 import math
 import os
@@ -120,6 +121,69 @@ EU = {
 }
 
 
+
+# --- the mph (US) face, us-mph-day-face.png (1600 x 1200) --------------------------------------------------------
+# The same housing as the EU face: only the speedometer's scales, the economy gauge (MPG), the printing and the
+# fuel reserve block (orange) differ. Its own measurements are taken relative to their dial's pivot in the US photo
+# and carried into the EU photo's frame (k: the two photos' scale, from the hubs' distance, 525 / 442 px).
+US_K = 525 / 442
+US_PIVOT = {'fuel': (256, 893), 'spd': (583, 762), 'tach': (1025, 771), 'cool': (1365, 895)}
+EU_PIVOT = {'fuel': (338, 902), 'spd': (745, 763), 'tach': (1270, 763), 'cool': (1658, 902)}
+
+
+def us2eu(dial, x, y):
+    (ux, uy), (ex, ey) = US_PIVOT[dial], EU_PIVOT[dial]
+    return ex + (x - ux) * US_K, ey + (y - uy) * US_K
+
+
+def mph_ang(v):
+    """The outer MPH scale: 16.2 degrees a 10 mph, 20 mph at -102.3."""
+    return -102.3 + 1.6225 * (v - 20)
+
+
+US_ECON_TICKS = [   # (outer end, inner end) in the US photo, width, MPG (None: the wedges past 40, not on the map)
+    ((885, 900), (912.5, 882.5), 10, None), ((905, 912.5), (927.5, 895), 10, None),
+    ((931, 927.5), (952.5, 905), 4, 40), ((971, 930), (977.5, 914), 3.5, 25), ((992.5, 931), (996, 917.5), 3.5, 20),
+    ((1025, 931), (1026, 919), 3.5, 15), ((1102.5, 930), (1082.5, 907.5), 4, 10), ((1155, 897.5), (1126, 878.5), 5, 8),
+]
+US = copy.deepcopy(EU)
+US.update({
+    'photo': 'us-mph-day-face.png',
+    'mph': True,
+})
+US['dials'][1]['map'] = [(0, -121), (20, mph_ang(20)), (150, mph_ang(150))]
+US['dials'][1]['rest'] = -121
+US['ticks'] = [
+    [1, mph_ang(10), mph_ang(150), 15, 228, 28.5, 8.3],                 # 10 .. 150 mph
+    [1, mph_ang(15), mph_ang(145), 14, 228, 16.6, 3.5],                 # 15 .. 145
+    [1, mph_ang(20 * 0.621371), mph_ang(240 * 0.621371), 23, 147, 10.7, 3],   # the inner km/h ring, 20 .. 240 every 10
+] + [t for t in EU['ticks'] if t[0] != 1]
+US['zones'] = [z if z[0] != 0 else [0, -41, -29, 112, 140, 'orange'] for z in EU['zones']]
+_ep = us2eu('tach', 1035.5, 818)
+US['econ'] = {'pivot': [round(_ep[0], 1), round(_ep[1], 1)], 'top': round(us2eu('tach', 0, 861)[1], 1), 'len': 150,
+              'width': 4.5, 'rest': -113,
+              'ticks': [(us2eu('tach', *o), us2eu('tach', *i), w * US_K) for o, i, w, v in US_ECON_TICKS],
+              'values': [v for o, i, w, v in US_ECON_TICKS]}
+_US_TEXTS = [   # (text, font, dial, US photo centre x, y)
+    ('20', 'e_spd', 'spd', 441.5, 797), ('40', 'e_spd', 'spd', 445, 716), ('60', 'e_spd', 'spd', 493.5, 652),
+    ('80', 'e_spd', 'spd', 571.5, 616), ('100', 'e_spd', 'spd', 656, 633.5), ('120', 'e_spd', 'spd', 713, 687.5),
+    ('140', 'e_spd', 'spd', 736, 767.5),
+    ('20', 'e_lab', 'spd', 500, 802), ('40', 'e_lab', 'spd', 495, 772), ('60', 'e_lab', 'spd', 497.5, 742),
+    ('80', 'e_lab', 'spd', 510, 716), ('100', 'e_lab', 'spd', 534, 692), ('120', 'e_lab', 'spd', 564, 676),
+    ('140', 'e_lab', 'spd', 595, 671), ('160', 'e_lab', 'spd', 629, 682), ('180', 'e_lab', 'spd', 655, 702),
+    ('200', 'e_lab', 'spd', 669, 730), ('220', 'e_lab', 'spd', 678.5, 760), ('240', 'e_lab', 'spd', 675, 789),
+    ('km/h', 'e_sm', 'spd', 587, 714), ('MPH', 'e_lab', 'spd', 589, 825), ('EG', 'e_xs', 'spd', 589, 842),
+    ('MPG', 'e_sm', 'tach', 1017, 879.5), ('40', 'e_us', 'tach', 955, 891), ('25', 'e_us', 'tach', 979, 900),
+    ('20', 'e_us', 'tach', 1002, 904), ('15', 'e_us', 'tach', 1026, 904), ('10', 'e_us', 'tach', 1076, 892),
+    ('8', 'e_us', 'tach', 1112, 871),
+    ('0', 'e_lab', 'fuel', 176, 791), ('½', 'e_frac', 'fuel', 255, 762), ('⅟', 'e_frac', 'fuel', 330, 792),
+    ('UNLEADED GASOLINE', 'e_word', 'fuel', 255, 851), ('ONLY', 'e_word', 'fuel', 255, 934),
+]
+_EU_TACH_TEXTS = [t for t in EU['texts'] if t[1] == 'e_rpm' or t[0] in ('1/min', 'x1000')]
+US['texts'] = _EU_TACH_TEXTS + [(t, f) + tuple(round(v, 1) for v in us2eu(d, x, y)) for t, f, d, x, y in _US_TEXTS]
+US['icons'] = [('fuel',) + tuple(round(v, 1) for v in us2eu('fuel', 260, 821)) + (40,),
+               ('e36cool',) + tuple(round(v, 1) for v in us2eu('cool', 1361, 830)) + (46,)]
+
 def place(face):
     """Scale and offset from the face photo to the cluster: true proportions, the lamp strips' bottom at y 718."""
     s = 0.9
@@ -155,7 +219,8 @@ def build(face, wid, toggle):
             ang += 360
         r0, r1 = math.hypot(x0 - px, y0 - py), math.hypot(x1 - px, y1 - py)
         eticks.append([round(ang, 2), L(max(r0, r1)), L(min(r0, r1)), L(w)])
-        emap.append([v, round(ang, 2)])
+        if v is not None:
+            emap.append([v, round(ang, 2)])
     emap.sort(key=lambda e: e[0])
     tach = face['dials'][2]
     dash = {
@@ -194,7 +259,7 @@ def build(face, wid, toggle):
 
 
 def layout():
-    widgets = build(EU, 'dash_eu', 'units=metric')
+    widgets = build(EU, 'dash_eu', 'units=metric') + build(US, 'dash_us', 'units=us')
     return {
         'schemaVersion': 2,
         'name': 'E36',
