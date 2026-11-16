@@ -69,7 +69,7 @@ test('economy: no data gives null', () => {
     assert.strictEqual(e36.economy(50, null, true), null);
 });
 
-// --- smoothing and trip ------------------------------------------------------------------------------------------
+// --- smoothing and the trip readout ------------------------------------------------------------------------------------------
 test('Smooth: first value taken as is, then eases, null holds', () => {
     const s = new e36.Smooth(1000);
     assert.strictEqual(s.step(10, 0), 10);
@@ -85,23 +85,12 @@ test('Smooth: Infinity in or out does not poison it', () => {
     const w = s.step(12, 1000);
     assert.ok(isFinite(w), String(w));
 });
-test('Trip: 100 km/h for 36 s is 1 km', () => {
-    const t = new e36.Trip();
-    for (let i = 0; i <= 36; i++) t.add(100, i * 1000);
-    assert.ok(near(t.km(), 1, 0.01), String(t.km()));
-});
-test('Trip: a gap over 2 s adds nothing', () => {
-    const t = new e36.Trip();
-    t.add(100, 0);
-    t.add(100, 5000);
-    assert.strictEqual(t.km(), 0);
-});
-test('Trip: no speed adds nothing', () => {
-    const t = new e36.Trip();
-    t.add(null, 0);
-    t.add(null, 1000);
-    t.add(50, 2000);
-    assert.strictEqual(t.km(), 0);
+test('tripText: the E36 trip reads 000.0, in km or miles, and rolls over at 1000', () => {
+    assert.strictEqual(e36.tripText(0, false), '000.0');
+    assert.strictEqual(e36.tripText(12.34, false), '012.3');
+    assert.strictEqual(e36.tripText(1.609344, true), '001.0');
+    assert.strictEqual(e36.tripText(1000.5, false), '000.5');
+    assert.strictEqual(e36.tripText(null, false), '000.0');
 });
 
 // --- night colours ------------------------------------------------------------------------------------------------
@@ -151,6 +140,12 @@ test('layout: only the backdrop pieces reach under the hood or the belt light', 
 test('layout: BMW\'s gear letter stays uncovered', () => {
     const over = loadLayout().widgets.filter((w) => overlaps(w, [1380, 660, 1460, 720])).map((w) => w.id);
     assert.deepStrictEqual(over, []);
+});
+test('layout: each face fills BMW\'s strip row either side of the gear letter', () => {
+    const ws = loadLayout().widgets.filter((w) => w.type === 'e36dash' && w.stripRow);
+    const got = ws.map((w) => w.toggle + ' ' + w.stripRow + ' ' + w.x + '-' + (w.x + w.w) + ' ' + w.y + '-' + (w.y + w.h)).sort();
+    assert.deepStrictEqual(got, ['units=metric l 0-1380 660-720', 'units=metric r 1460-1920 660-720',
+        'units=us l 0-1380 660-720', 'units=us r 1460-1920 660-720']);
 });
 test('layout: each face has its e36dash, on its own units', () => {
     const ws = loadLayout().widgets.filter((w) => w.type === 'e36dash' && w.y === 0);

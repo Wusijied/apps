@@ -105,8 +105,10 @@ CLUSTER_FONTS = [
     ('e_frac', 'BarlowCondensed-SemiBold.ttf', 34, '½⅟', 0, None, {'⅟': [('1', 0.55, -0.325), ('⁄', 1.0, 0.0), ('1', 0.55, 0.0)]}),
     ('e_us', 'BarlowCondensed-SemiBold.ttf', 26, DIGITS),                   # US face: the MPG figures
     ('e_word', 'BarlowSemiCondensed-Medium.ttf', 23, UPPER + ' '),          # US face: UNLEADED GASOLINE, ONLY
-    ('e_sm', 'BarlowCondensed-SemiBold.ttf', 15, UPPER + LOWER + DIGITS + '/ '),
+    ('e_sm', 'BarlowCondensed-SemiBold.ttf', 15, UPPER + LOWER + DIGITS + '/° '),
     ('e_xs', 'BarlowCondensed-SemiBold.ttf', 10, UPPER),
+    ('e_lcd', 'DSEG7Classic-Bold.ttf', 22, DIGITS + '.-: '),                # the LCD: odometer field, trip
+    ('e_lcd2', 'DSEG7Classic-Bold.ttf', 17, DIGITS + '.-: '),               # its second row: clock, outside temperature
     # Cruise: calm, light numbers
     ('c_speed', 'BarlowSemiCondensed-Medium.ttf', 150, DIGITS + '-'),
     ('c_val', 'BarlowSemiCondensed-Medium.ttf', 62, DIGITS + '.:-+°'),

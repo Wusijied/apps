@@ -16,7 +16,6 @@ const PETROL_G_PER_L = 745;      // grams in a litre of petrol
 const IDLE_LPH = 0.8;            // a 3-litre six at idle, warm
 const STILL_KMH = 3;             // under this the car stands: the economy needle reads the thirsty end
 const L100_PER_MPG = 235.215;    // L/100km x MPG (US) = 235.215
-const TRIP_GAP_MS = 2000;        // a gap in the speed samples longer than this adds nothing to the trip
 
 function isNum(v) { return typeof v === 'number' && !isNaN(v); }
 
@@ -68,21 +67,12 @@ class Smooth {
     }
 }
 
-/** The trip counter: km driven since it was made, from speed samples. */
-class Trip {
-    constructor() { this.dist = 0; this.last = null; }
-
-    /** A speed sample (km/h) at `now` ms. A gap over 2 s, or no speed, adds nothing. */
-    add(speedKmh, now) {
-        const prev = this.last;
-        this.last = isNum(speedKmh) ? { v: Math.max(0, speedKmh), at: now } : null;
-        if (!prev || !this.last) return;
-        const dt = now - prev.at;
-        if (dt <= 0 || dt > TRIP_GAP_MS) return;
-        this.dist += (prev.v + this.last.v) / 2 * dt / 3600000;
-    }
-
-    km() { return this.dist; }
+/** The trip as the E36's LCD shows it: 000.0, in miles (us) or km, rolling over at 1000. */
+function tripText(km, us) {
+    const v = isNum(km) ? Math.max(0, km) / (us ? 1.609344 : 1) : 0;
+    const tenths = Math.floor(v * 10 + 1e-6) % 10000;
+    const s = String(Math.floor(tenths / 10));
+    return (s.length < 3 ? '000'.slice(s.length) + s : s) + '.' + (tenths % 10);
 }
 
-module.exports = { frac, flowLph, economy, Smooth, Trip };
+module.exports = { frac, flowLph, economy, Smooth, tripText };

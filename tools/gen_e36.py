@@ -255,7 +255,34 @@ def build(face, wid, toggle):
     icons = [{'id': 'i%s_%s' % (tag, name), 'type': 'icon', 'icon': name, 'class': 'content', 'z': 5,
               'x': round(X(x) - L(sz) / 2), 'y': round(Y(y) - L(sz) / 2), 'w': round(L(sz)), 'h': round(L(sz)),
               'color': 'mark', 'toggle': toggle} for name, x, y, sz in face['icons']]
-    return [dash, econ] + texts + icons
+    # the LCD under the speedometer (as the US photo's): the odometer field (the range: the car has no odometer
+    # signal), the unit, the trip; its second row (where the E36 put INSPECTION / OIL SERVICE) the clock and the
+    # outside temperature. Positions in the window, photo px of the EU frame.
+    lx, ly, lw, lh = face['windows'][0][:4]
+    unit = 'miles' if face['mph'] else 'km'
+
+    def lcd(n, text, fname, x0, x1, ycen, align, color='lcd'):
+        f = font(fname)
+        h = f['cellHeight']
+        return {'id': 'l%s_%s' % (tag, n), 'type': 'text', 'class': 'content', 'z': 5,
+                'x': round(X(lx + x0)), 'y': round(Y(ly + ycen) - h / 2), 'w': round(L(x1 - x0)), 'h': h,
+                'text': text, 'font': fname, 'color': color, 'align': align, 'toggle': toggle}
+    r1, r2 = 18, 50
+    lcds = [
+        lcd('range', '{{range}}', 'e_lcd', 4, 122, r1, 'right'),
+        lcd('unit', unit, 'e_sm', 126, 172, r1 + 2, 'left'),
+        lcd('trip', '{{trip}}', 'e_lcd', 176, 262, r1, 'right'),
+        lcd('time', '{{time}}', 'e_lcd2', 6, 96, r2, 'left'),
+        lcd('ampm', '{{ampmLc}}', 'e_sm', 98, 124, r2 + 1, 'left'),
+        lcd('out', '{{ambient}}', 'e_lcd2', 150, 236, r2, 'right'),
+        lcd('outu', '{{u:temp}}', 'e_sm', 238, 262, r2 + 1, 'left'),
+    ]
+    # the strip row: the same picture in two pieces either side of BMW's gear letter
+    pieces = []
+    for side, x0, x1 in (('l', 0, GEAR[0]), ('r', GEAR[1], W)):
+        pc = dict(dash, id='%s_%s' % (wid, side), x=x0, y=ROW, w=x1 - x0, h=H - ROW, stripRow=side)
+        pieces.append(pc)
+    return [dash, econ] + pieces + texts + icons + lcds
 
 
 def layout():
