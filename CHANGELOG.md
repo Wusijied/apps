@@ -6,8 +6,9 @@ Newest first. Dates are when the build was pushed.
 
 - **Cluster Themes 0.20.0:**
   - **New theme: E36,** the BMW E36 328i cluster of the 90s, traced off photos of the real one and as big as the screen allows: fuel, speed, revs and coolant dials with cream needles on top of all the print, the fuel-use gauge under the rev counter, the LCD with range and trip, and the orange-red night lighting after sunset. The European face shows with km/h, the US face (MPH, MPG) with mph. With Redline at 7000 or 7500 rpm it becomes the E36 M3's cluster: red needles, the faster speedometer, the /M badge and an oil temperature gauge in place of the fuel-use gauge. BMW's own range, clock, gear letter and outside temperature show in the row under the face; the turn arrows stay dark.
+  - **Fixed:** 0.19.0 would not install on many cars ("the app manager could not install cluster_themes ... generateSomeipInterfaces", issues #17 to #20). The music panel asked for the head unit's now playing under a name those cars don't have; it now asks for the front screen's (`HMI_CID`).
   - Not yet tested on a car.
-- **HUD Widgets 0.15.1:** ships the shared file the E36 theme added to the drawing engine (no change you can see).
+- **HUD Widgets 0.15.1:** installs again on the cars where 0.15.0 failed the same way (the same fix), and ships the shared file the E36 theme added to the drawing engine.
 
 ## Nov 15 2026
 

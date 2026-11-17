@@ -347,6 +347,7 @@ const E36_ROLES = ['bezel', 'face', 'dial', 'mark', 'needle', 'hub', 'red', 'blu
 const E36_ZONE_COLORS = ['red', 'blue', 'orange'];      // u_zoneB's colour codes
 const VDASH_RPM = 8000;            // the Vector theme's rev counter: 0..8
 const MEDIA_IF = 'de.bmw.infotainment.hmi.hmimediastate.HmiMediaState';   // the head unit's now playing (front)
+const MEDIA_INST = 'HMI_CID';     // its front screen's instance
 const MEDIA_TYPES = { 1: 'ARTIST', 2: 'ALBUM', 3: 'TITLE' };
 /** A song's text for the baked fonts: accents dropped, curly quotes and dashes made plain, the rest left out. */
 function mediaText(v) {
@@ -804,7 +805,10 @@ class HudApp {
         // now playing (the Vector layouts' music panel): the head unit's own media state, front screen only. Optional
         // (app.json): not every unit may have it, and whether CarPlay fills it is not known yet. Added last, so the
         // one-at-a-time SOME/IP setup (signals.js) reaches every vehicle signal before it, whatever this one does
+        // The instance is HMI_CID (the front screen; HMI_FoMo_Left / _Right are the rear screens): asking for "1" in the
+        // manifest made the app manager refuse the whole app (issues #17 to #20); app.json allows any instance ("*")
         extra[MEDIA_IF] = {
+            $instance: MEDIA_INST,
             playerMetadata: (v) => this._mediaFeed('meta', v),
             trackProgress: (v) => this._mediaFeed('progress', v),
         };

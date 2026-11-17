@@ -109,6 +109,7 @@
       "projectedGuidanceActive": "rs"
     },
     "de.bmw.infotainment.hmi.hmimediastate.HmiMediaState": {
+      "_instances": "*",
       "playerMetadata": "rs",
       "trackProgress": "rs",
       "_optional": "now playing (title, artist, progress) in the Vector layout"
