@@ -8,3 +8,7 @@
   check its axis against a face-on photo; when the traced photo is shot at an angle, keep the fitted sizes but generate
   the part mirrored about the true axis, and test the mirror. (E36 economy window, Nov 17 2026: traced off the angled EU
   photo it came out 21 px off the rev counter's centre with uneven corners, and the user saw it.)
+- **Realism means the real part, not a generic look:** before shading a part to look "3D" (domes, highlights, gloss),
+  check how it looks on the car's photos: the E36's needle hubs are flat caps of fine-grained plastic, not domes. Give a
+  part only the depth it really has (its shadow) and the surface it really has (grain). (E36 realism pass, Nov 17 2026:
+  domed, highlighted hubs; the user corrected it.)

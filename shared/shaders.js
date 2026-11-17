@@ -1768,9 +1768,12 @@ uniform vec2 u_zoneB[6];   // dial index (round its pivot); colour 0 red, 1 blue
 uniform vec4 u_win[3];     // windows (LCD, top lamp, ASC or the M3's /M plate): x, y, w, h (w 0 = none)
 uniform vec3 u_winR;       // their corner radii
 uniform vec4 u_arrow[2];   // the turn arrows: centre x, y, size, direction (-1 left, 1 right)
+uniform float u_light;     // daylight: 1 by day, 0 at night (the glass's glare goes, the depth stays)
 
 float cov(float d) { return clamp(0.5 - d, 0.0, 1.0); }
 vec3 put(vec3 c, vec3 col, float a) { return mix(c, col, clamp(a, 0.0, 1.0)); }
+// a fixed noise per pixel (no sin: it loses precision at screen coordinates)
+float hash(vec2 p) { vec3 q = fract(p.xyx * 0.1031); q += dot(q, q.yzx + 33.33); return fract((q.x + q.y) * q.z); }
 float boxd(vec2 p, vec4 r, float rad) {
     vec2 hs = r.zw * 0.5;
     vec2 q = abs(p - (r.xy + hs)) - hs + rad;
@@ -1783,10 +1786,14 @@ void main() {
     vec3 c = u_col[12];
     vec3 BEZEL = u_col[0], FACE = u_col[1], MARK = u_col[3];
 
-    // the bezel and the face: a rounded box under a wide arch
-    float fd = max(boxd(p, vec4(u_face.xy, u_face.zw - u_face.xy), u_faceB.x), length(p - u_faceB.yz) - u_faceB.w);
+    // the bezel and the face: a rounded box under a wide arch. The face is grained plastic, in the hood's shadow under
+    // the arch and a little along every edge (it sits below the bezel)
+    float ad = length(p - u_faceB.yz) - u_faceB.w;
+    float fd = max(boxd(p, vec4(u_face.xy, u_face.zw - u_face.xy), u_faceB.x), ad);
     c = put(c, BEZEL, cov(fd - u_bezel));
-    c = put(c, FACE, cov(fd));
+    float hood = smoothstep(-110.0, 0.0, ad);
+    float grain = hash(p) * 0.6 + hash(floor(p * 0.5)) * 0.4 - 0.5;
+    c = put(c, FACE * (1.0 + 0.14 * grain) * (1.0 - 0.5 * hood * hood) * (1.0 - 0.3 * smoothstep(-14.0, 0.0, fd)), cov(fd));
 
     // the dials: black discs with a dark rim, cut flat at the bottom where the LCD and the economy gauge sit. They never
     // overlap, so the one this pixel is in (if any) is found once and only its ticks and zones are drawn.
@@ -1806,8 +1813,12 @@ void main() {
         bool lcd = K == 1.0 && w.z > 0.0;
         float bot = w.y + w.w;
         float cut = lcd ? p.y - bot - 4.0 : G.w > 0.0 ? p.y - G.w : -1.0;
-        c = put(c, BEZEL, cov(max(dc - 4.0, cut - 4.0)));
-        c = put(c, u_col[2], cov(max(dc, cut)));
+        // the dial sits in a well: its wall dark at the top (facing down), lit at the bottom (facing up); the black dial
+        // a shade lighter below its centre, where the light reaches
+        float low = clamp((p.y - G.y) / G.z * 0.7 + 0.5, 0.0, 1.0);
+        c = put(c, mix(BEZEL * 0.5, FACE * 0.9, low * low), cov(max(dc - 4.0, cut - 4.0)));
+        float inDial = cov(max(dc, cut));
+        c = put(c, u_col[2] + 0.03 * (1.0 - smoothstep(0.0, G.z, length(p - G.xy - vec2(0.0, G.z * 0.3)))), inDial);
         if (lcd) {
             // the LCD's window cut up into the speedometer: level over the LCD, then shoulders sloping down to the
             // rim, grey either side of the LCD
@@ -1837,6 +1848,10 @@ void main() {
             float k = g.z > 1.0 ? clamp(floor((a - g.x) / sp + 0.5), 0.0, g.z - 1.0) : 0.0;
             c = put(c, MARK, cov(max(abs(radians(a - (g.x + k * sp))) * r - h.y * 0.5, max(g.w - h.x - r, r - g.w))));
         }
+
+        // the rim's shadow on the dial and its print, the light from above: where the point a little above is under the
+        // face, this one is in its shade (a crescent under the top rim)
+        c *= 1.0 - 0.55 * inDial * smoothstep(-24.0, 4.0, length(p - vec2(0.0, 16.0) - G.xy) - G.z);
     }
 
     // the windows (LCD, top lamp, ASC), over the dials' bevels; the LCD inside the speedometer's rim (it clips a corner)
@@ -1846,8 +1861,10 @@ void main() {
         float d = boxd(p, u_win[i], rad);
         if (i == 0) d = max(d, dsp);
         float on = step(0.5, u_win[i].z);
-        c = put(c, FACE * 0.6, cov(d - 2.0) * on);
-        c = put(c, u_col[10], cov(d) * on);
+        // sunk like the dials: the frame dark at the top, lit at the bottom, the top edge's shade inside
+        float low = clamp((p.y - u_win[i].y) / max(u_win[i].w, 1.0), 0.0, 1.0);
+        c = put(c, mix(BEZEL * 0.6, FACE * 0.9, low), cov(d - 2.0) * on);
+        c = put(c, u_col[10] * (1.0 - 0.5 * smoothstep(-10.0, 2.0, boxd(p - vec2(0.0, 7.0), u_win[i], rad))), cov(d) * on);
     }
 
     // the turn arrows (never lit: the app can't read them)
@@ -1860,6 +1877,16 @@ void main() {
         float head = max(max(-q.x - 0.5, q.x - 0.05), abs(q.y) - (q.x + 0.5) * 0.85);
         c = put(c, u_col[9], cov(min(tail, head) * w.z));
     }
+
+    // the cluster is lit from the middle: its ends fall off a little
+    c *= 1.0 - 0.18 * smoothstep(560.0, 1000.0, abs(p.x - u_faceB.y));
+    // the glass over it all, by day: a broad soft band of sky across it, a narrow one on the right, brighter under the
+    // hood's arch, a thin bright line where the glass meets the bezel's top
+    float bx = p.x + 0.55 * p.y;
+    float b1 = (bx - 560.0) / 240.0, b2 = (bx - 1560.0) / 110.0;
+    float sky = 0.055 * exp(-b1 * b1) + 0.03 * exp(-b2 * b2) + 0.045 * smoothstep(-240.0, 0.0, ad);
+    sky += 0.12 * cov(abs(fd - u_bezel + 2.0) - 0.8) * smoothstep(420.0, 80.0, p.y);
+    c = mix(c, vec3(0.86, 0.9, 0.96), sky * u_light * cov(fd - u_bezel));
 
     gl_FragColor = vec4(c, 1.0);
 }
@@ -1936,9 +1963,18 @@ uniform vec4 u_econ;       // the economy needle: pivot x, y, length (0 = none),
 uniform vec2 u_econB;      // its angle, width
 uniform vec4 u_cham;       // the window's top corners: left corner x, its slope down to the left, right corner x, its slope
 uniform vec4 u_tach;       // the rev counter's centre x, y, radius, flat cut y (the window ends at its edge and cut)
+uniform float u_light;     // daylight: 1 by day, 0 at night (softer shadows)
 
 float cov(float d) { return clamp(0.5 - d, 0.0, 1.0); }
 vec2 dir(float a) { float r = radians(a); return vec2(sin(r), -cos(r)); }
+// a fixed noise per pixel (no sin: it loses precision at screen coordinates)
+float hash(vec2 p) { vec3 q = fract(p.xyx * 0.1031); q += dot(q, q.yzx + 33.33); return fract((q.x + q.y) * q.z); }
+// a dial's needle at d from its pivot, pointing u: the distances to its counterweight, its bar (tapered) and its hub
+vec3 parts(vec2 d, vec2 u, vec4 V, vec2 N) {
+    float t = dot(d, u), side = abs(d.x * u.y - d.y * u.x);
+    float wt = mix(N.y, N.y * 0.55, clamp(t / N.x, 0.0, 1.0)) * 0.5;
+    return vec3(max(side - N.y * 1.1, max(t, -t - V.w)), max(side - wt, max(-t, t - N.x)), length(d) - V.z);
+}
 
 void main() {
     vec2 p = v_uv * u_size + u_origin;
@@ -1965,25 +2001,28 @@ void main() {
     for (int i = 0; i < 4; i++) {
         vec4 v = u_piv[i];
         vec2 n = u_ndl[i];
-        if (n.x <= 0.0 || length(p - v.xy) > max(n.x, v.w) + n.y + 2.0) continue;
+        if (n.x <= 0.0 || length(p - v.xy) > max(n.x, v.w) + n.y + 16.0) continue;
         K = float(i); V = v; N = n;
         A = i == 0 ? u_ang.x : i == 1 ? u_ang.y : i == 2 ? u_ang.z : u_ang.w;
     }
     if (K >= 0.0) {
-        // a tapered bar from the pivot, a dark counterweight behind it, the hub over both
-        vec2 d = p - V.xy;
-        float r = length(d);
-        vec2 u = dir(A);
-        float t = dot(d, u), side = abs(d.x * u.y - d.y * u.x);
-        float wt = mix(N.y, N.y * 0.55, clamp(t / N.x, 0.0, 1.0)) * 0.5;
-        float m = cov(max(side - N.y * 1.1, max(t, -t - V.w)));
-        c = mix(c, u_col[1] * 0.55, m); al = max(al, m);
-        m = cov(max(side - wt, max(-t, t - N.x)));
-        c = mix(c, u_col[0], m); al = max(al, m);
-        m = cov(r - V.z - 1.5);
-        c = mix(c, u_col[2], m); al = max(al, m);
-        m = cov(r - V.z);
-        c = mix(c, u_col[1], m); al = max(al, m);
+        vec2 d = p - V.xy, u = dir(A);
+        // its shadow first (over the economy needle, which lies lower): the needle stands off the dial, the light from
+        // above and a little left. "Over" in straight alpha: what is drawn next covers what is under it
+        vec3 s = parts(d - vec2(3.0, 8.0), u, V, N);
+        float m = clamp(0.5 - min(min(s.x, s.y), s.z - 1.5) / 7.0, 0.0, 1.0) * (0.3 + 0.2 * u_light);
+        float o = m + al * (1.0 - m);
+        c = c * al * (1.0 - m) / max(o, 0.0001); al = o;
+        // a tapered bar from the pivot, a counterweight (tail) behind it, the hub over both: hub and tail one flat piece of fine-grained
+        // plastic, as on the car
+        vec3 q = parts(d, u, V, N);
+        vec3 cap = u_col[1] * (1.0 + 0.3 * (hash(p) * 0.6 + hash(floor(p * 0.5)) * 0.4 - 0.5));
+        for (int j = 0; j < 4; j++) {
+            m = cov(j == 0 ? q.x : j == 1 ? q.y : j == 2 ? q.z - 1.5 : q.z);
+            vec3 col = j == 0 ? cap : j == 1 ? u_col[0] : j == 2 ? u_col[2] : cap;
+            o = m + al * (1.0 - m);
+            c = (col * m + c * al * (1.0 - m)) / max(o, 0.0001); al = o;
+        }
     }
     gl_FragColor = vec4(c, al);
 }

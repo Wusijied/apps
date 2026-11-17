@@ -2199,6 +2199,7 @@ class HudApp {
             c.uniform(ref, 'u_win', flat(Wn.map((g) => (g ? g.slice(0, 4) : [0, 0, 0, 0]))), { type: 'vec4' });
             c.uniform(ref, 'u_winR', Wn.map((g) => (g ? g[4] : 0)));
             c.uniform(ref, 'u_arrow', flat(pad(w.arrows || [], 2, [0, 0, 0, 0])), { type: 'vec4' });
+            c.uniform(ref, 'u_light', [this.nightOn ? 0 : 1]);     // the glass's glare by day only
         } else if (w.type === 'e36econ') {
             // the E36 economy (or the M3's oil temperature) gauge: its own small layer over the rev counter's lower cut
             const E = w.econ, T = w.tach, tk = E.ticks.slice(0, 16);     // [x0, y0, x1, y1, width]
@@ -2226,6 +2227,7 @@ class HudApp {
             c.uniform(ref, 'u_econ', E ? [E.pivot[0], E.pivot[1], E.len, E.top] : [0, 0, 0, 0]);
             c.uniform(ref, 'u_cham', (E && E.cham) || [-1e5, 0, 1e5, 0]);
             c.uniform(ref, 'u_tach', T ? [T[0], T[1], T[2], T[3] || 1e5] : [0, 0, 0, 0]);
+            c.uniform(ref, 'u_light', [this.nightOn ? 0 : 1]);     // softer needle shadows at night
             x.econ = new e36.Smooth(1000);
         } else if (w.type === 'vdash') {
             // the bracket lines (target px): [x0, y0, x1, y1, width, brightness 0..1]

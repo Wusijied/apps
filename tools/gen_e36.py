@@ -215,9 +215,10 @@ def eu_econ_ticks():
     return out
 # The fuel and coolant gauges are the same instrument: one circle, the pivot under its centre, the same sweep, tick
 # radii, colour blocks and icon height. Measured on the US photo (face-on) from its hubs, checked against a flat
-# print of the dial face (design/photos/e36/dial-print.png); the EU photo is seen at an angle and its raised hubs
+# print of the dial face (design/photos/e36/dial-print.png); the needle's tail (its tab past the hub) off the EU photo's fuel
+# hub (42 px from the pivot, the hub 27). The EU photo is seen at an angle and its raised hubs
 # project ~30 px off, so it gives only the circles' size. Lengths in photo px of the EU frame.
-SMALL = {'r': 132, 'drop': 62, 'hub': 28, 'tail': 18, 'needle': [130, 7], 'sweep': 44, 'rest': -47,
+SMALL = {'r': 132, 'drop': 62, 'hub': 28, 'tail': 41, 'needle': [130, 7], 'sweep': 44, 'rest': -47,
          'tick': [142, 25, 3.5], 'block': [117, 142, 12, 3],
          # (dy, box size): both glyphs 34 tall, centred 82 above the pivot (the pump fills 0.66 of its box, low;
          # the thermometer 0.94)
