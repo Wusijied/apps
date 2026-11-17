@@ -8,9 +8,10 @@ eu-kmh-day-face.png (the metric face) and us-mph-day-face.png (the mph face); fo
 counter (7000, 7500) the M3's: m3-kmh-jpn-day-face.png and m3-us-mph-day-face.png (red needles, a faster
 speedometer, the /M badge, the oil temperature gauge where the 328i has its economy gauge). Every measurement below is in that
 photo's pixels, levelled (pairs that sit at one height on the car, like the two big hubs, take their average);
-place() scales a face to the cluster at true proportions, ending where the E36's warning-light strips begin: the
-theme leaves BMW's whole bottom row (y 660..720) open, so the car's own range, clock, gear letter and outside
-temperature show there.
+place() scales a face to the cluster at true proportions, the E36's warning-light strips in BMW's bottom row
+(y 660..720): black, with holes where BMW's own range, drive mode and gear letter, and electric range show through.
+The rest of BMW's row (its clock, messages, outside temperature) is behind the strips; the clock and outside
+temperature show on the LCD's second row instead.
 
 Angles are degrees clockwise from 12 o'clock, round the needle's pivot. A dial's "map" is [value, angle] pairs
 read off its printed scale (shared/e36.js frac()); "rest" is where the needle lies with no data (on its pin).
@@ -24,7 +25,18 @@ import math
 import os
 import sys
 
-W, H, ROW = 1920, 720, 660           # the cluster; BMW's bottom row is y 660..720, left open
+W, H, ROW = 1920, 720, 660           # the cluster; BMW's bottom row is y 660..720, the E36's strips over it
+
+# The warning-light strips (target px: x, y, w, h), black windows from the top of BMW's bottom row down past the
+# screen's edge; their dividers moved from the E36's (photo x 750 and 1235) so each hole below lies inside a strip,
+# the three symmetric about the middle. Black as BMW's own row (the "strip" role), so the holes don't show.
+STRIPS = [[24, ROW, 382, 80], [424, ROW, 1072, 80], [1514, ROW, 382, 80]]
+STRIP_R = 14
+# BMW's own items that show through the strips (x0, x1; the layer pieces skip them), from the car photo of Nov 17
+# 2026 (the theme over BMW's row): the range with its pump icon at 107..299 (room for four digits), the drive mode
+# at 1223..1314 (room for SPORT PLUS / COMFORT either side) and the gear letter (BMW blacks out its gear slot while
+# anything covers x 1380..1460), the electric range at 1696..1842.
+HOLES = [(60, 322), (1130, 1480), (1680, 1880)]
 
 
 def lerp_ang(table, v):
@@ -502,8 +514,8 @@ STRIP_TOP = 993    # the E36's warning-light strips' top (photo px): the face en
 def place(face):
     """Scale and offset from the face photo to the cluster, true proportions: as big as the screen allows, the fuel and
     coolant dials reaching its left and right edges (the bezel and the hood's outline go off-screen; the grey face
-    fills behind), and the E36's warning-light strips' top at BMW's bottom row (y 660). The theme leaves that row open:
-    BMW's own range, clock, gear letter and outside temperature show there, where the E36 had its strips."""
+    fills behind), and the E36's warning-light strips' top at BMW's bottom row (y 660). The strips (STRIPS) are
+    drawn there, over BMW's row, with holes for its range, drive mode, gear letter and electric range (HOLES)."""
     fuel, cool = face['dials'][0], face['dials'][3]
     left, right = fuel['c'][0] - fuel['r'] - 4, cool['c'][0] + cool['r'] + 4      # their dark rims included
     s = (W - 12) / (right - left)
@@ -570,6 +582,7 @@ def build(face, wid, toggle):
                  for red, R in ((r, rev_face(r)) for r in face['redlines'])},
         'windows': [[X(x), Y(y), L(w), L(h), L(r)] for x, y, w, h, r in face['windows']],
         'arrows': [[X(x), Y(y), L(sz), d] for x, y, sz, d in face['arrows']],
+        'strips': STRIPS, 'stripR': STRIP_R,
     }
     # the economy gauge's own layer: its window in the rev counter, from the top line down to the dial's flat cut
     cx, cy, r = X(tach['c'][0]), Y(tach['c'][1]), L(tach['r'])
@@ -626,9 +639,9 @@ def build(face, wid, toggle):
         icons.append({'id': 'i%s_%s' % (tag, face['logo']), 'type': 'icon', 'icon': face['logo'], 'class': 'content', 'z': 5,
                       'x': round(X(wx + ww / 2) - lw / 2), 'y': round(Y(wy + wh / 2) - lh / 2), 'w': round(lw), 'h': round(lh),
                       'toggle': toggle})
-    # the LCD under the speedometer, one row as on the car (design/photos/e36/lcd-odometer.png): the odometer field
-    # (the range: the car has no odometer signal), the unit, the trip. The clock and outside temperature are BMW's own,
-    # in its bottom row. Positions in the window, photo px of the EU frame.
+    # the LCD under the speedometer (design/photos/e36/lcd-odometer.png): the odometer field (the range: the car has
+    # no odometer signal), the unit, the trip; its second row (where the E36 put INSPECTION / OIL SERVICE) the clock
+    # and the outside temperature, which the strips hide in BMW's row. Positions in the window, photo px of the EU frame.
     lx, ly, lw, lh = face['windows'][0][:4]
     unit = 'miles' if face['mph'] else 'km'
 
@@ -638,13 +651,21 @@ def build(face, wid, toggle):
         return {'id': 'l%s_%s' % (tag, n), 'type': 'text', 'class': 'content', 'z': 5,
                 'x': round(X(lx + x0)), 'y': round(Y(ly + ycen) - h / 2), 'w': round(L(x1 - x0)), 'h': h,
                 'text': text, 'font': fname, 'color': color, 'align': align, 'toggle': toggle}
-    r1 = 18
+    r1, r2 = 18, 50
     lcds = [
         lcd('range', '{{range}}', 'e_lcd', 4, 122, r1, 'right'),
         lcd('unit', unit, 'e_sm', 126, 172, r1 + 2, 'left'),
         lcd('trip', '{{trip}}', 'e_lcd', 176, 262, r1, 'right'),
+        lcd('time', '{{time}}', 'e_lcd2', 6, 96, r2, 'left'),
+        lcd('ampm', '{{ampmLc}}', 'e_sm', 98, 124, r2 + 1, 'left'),
+        lcd('out', '{{ambient}}', 'e_lcd2', 150, 236, r2, 'right'),
+        lcd('outu', '{{u:temp}}', 'e_sm', 238, 262, r2 + 1, 'left'),
     ]
-    return [dash, econ] + texts + icons + lcds + [ndl]
+    # the strip row: the same picture in pieces round the holes, where BMW's own items show (a layer is a rectangle)
+    edges = [0] + [x for h in HOLES for x in h] + [W]
+    pieces = [dict(dash, id='%s_%s' % (wid, 'abcd'[i]), x=x0, y=ROW, w=x1 - x0, h=H - ROW, stripRow='abcd'[i])
+              for i, (x0, x1) in enumerate(zip(edges[::2], edges[1::2]))]
+    return [dash, econ] + pieces + texts + icons + lcds + [ndl]
 
 
 def rev_texts():
@@ -683,8 +704,9 @@ def layout():
                   'traced off face-on photos at true proportions. The EU face (km/h, L/100km) with metric units, the US face '
                   '(MPH, MPG) with US units; with the redline at 7000 or 7500 (the 0 .. 8 rev counter) the M3\'s faces: red needles, '
                   'a 280 km/h or 170 MPH speedometer, the /M badge, an oil temperature gauge for the economy gauge. One e36dash shader draws the face, dials, ticks, zones and needles; the printed '
-                  'figures are text widgets. Lamps and turn arrows are never lit (the app cannot read them). BMW\'s own bottom row '
-                  '(range, clock, gear letter, outside temperature) shows under the face. Widget reference: shared/hud.js header.',
+                  'figures are text widgets. Lamps and turn arrows are never lit (the app cannot read them). The warning-light strips '
+                  'cover BMW\'s bottom row but for holes where its range, drive mode, gear letter and electric range show; the clock '
+                  'and outside temperature are on the LCD\'s second row. Widget reference: shared/hud.js header.',
         'widgets': widgets,
     }
 

@@ -4,6 +4,12 @@ Newest first. Dates are when the build was pushed.
 
 ## Nov 17 2026
 
+- **Cluster Themes 0.20.2:** E36:
+  - The warning-light strips are back along the bottom, with BMW's own range, drive mode, gear letter and electric range showing through them. The rest of BMW's bottom row (its clock, messages and outside temperature) is hidden behind the strips.
+  - The LCD has its second row again: the clock and the outside temperature.
+  - The face round the dials is darker again, by day and at night.
+  - Smoother needles, the rev counter's most of all: they move at the display's rate with a real needle's inertia, instead of in steps 20 times a second.
+  - Not yet tested on a car.
 - **Cluster Themes 0.20.1:** the E36's face round the dials is 30 % darker, by day and at night, so it reads less grey. This build also carries the install fix and the depth pass listed under 0.20.0.
 
 ## Nov 16 2026

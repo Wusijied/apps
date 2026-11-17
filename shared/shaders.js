@@ -1744,7 +1744,8 @@ const E36DASH = `// The E36 theme (layouts e36.json, made by tools/gen_e36.py) i
 // dials (fuel, speed, revs, coolant) with their ticks, coloured zones (the red rev zone, the fuel and coolant blocks),
 // the LCD and lamp windows and the (unlit) turn arrows. The printed figures are text widgets on top; the economy gauge is
 // its own small layer (e36econ) and the needles another on top of everything (e36needles), as on the car where they
-// sweep over the print. The face ends at BMW's bottom row, which stays open. Every position is in target px;
+// sweep over the print. Under the face, in BMW's bottom row, the black warning-light strips: drawn by the same shader
+// in pieces round the holes where BMW's own items show (gen_e36.py HOLES). Every position is in target px;
 // u_origin is this layer's own top-left. v_uv (0,0) is the top-left.
 // Kept light for the cluster's GPU (tools/shader_budget.js): no lookups inside loops, each loop skips what is far away.
 #ifdef GL_FRAGMENT_PRECISION_HIGH
@@ -1769,6 +1770,8 @@ uniform vec4 u_win[3];     // windows (LCD, top lamp, ASC or the M3's /M plate):
 uniform vec3 u_winR;       // their corner radii
 uniform vec4 u_arrow[2];   // the turn arrows: centre x, y, size, direction (-1 left, 1 right)
 uniform float u_light;     // daylight: 1 by day, 0 at night (the glass's glare goes, the depth stays)
+uniform vec4 u_strip[3];   // the warning-light strips: x, y, w, h (w 0 = none)
+uniform float u_stripR;    // their corner radius
 
 float cov(float d) { return clamp(0.5 - d, 0.0, 1.0); }
 vec3 put(vec3 c, vec3 col, float a) { return mix(c, col, clamp(a, 0.0, 1.0)); }
@@ -1887,6 +1890,16 @@ void main() {
     float sky = 0.055 * exp(-b1 * b1) + 0.03 * exp(-b2 * b2) + 0.045 * smoothstep(-240.0, 0.0, ad);
     sky += 0.12 * cov(abs(fd - u_bezel + 2.0) - 0.8) * smoothstep(420.0, 80.0, p.y);
     c = mix(c, vec3(0.86, 0.9, 0.96), sky * u_light * cov(fd - u_bezel));
+
+    // the warning-light strips, last: flat black like BMW's own row that shows through their holes (no glare, no
+    // grain, or the holes' edges would show), in a dark rim sunk into the face
+    if (p.y > u_strip[0].y - 4.0) {
+        for (int i = 0; i < 3; i++) {
+            float d = boxd(p, u_strip[i], u_stripR), on = step(0.5, u_strip[i].z);
+            c = put(c, BEZEL * 0.6, cov(d - 2.0) * on);
+            c = put(c, u_col[11], cov(d) * on);
+        }
+    }
 
     gl_FragColor = vec4(c, 1.0);
 }

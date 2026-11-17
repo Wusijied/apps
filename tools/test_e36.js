@@ -24,6 +24,43 @@ const near = (a, b, eps) => Math.abs(a - b) <= eps;
 const e36 = require('../shared/e36');
 
 // --- needle maths -------------------------------------------------------------------------------------------------
+test('Needle: the first target as is, then a glide to a new one with no overshoot', () => {
+    const n = new e36.Needle(22);
+    assert.strictEqual(n.step(-117, 0), -117);
+    let last = -117;
+    for (let t = 16; t <= 600; t += 16) {
+        const a = n.step(60, t);
+        assert.ok(a >= last - 1e-9 && a <= 60 + 1e-9, 't ' + t + ': ' + a);
+        last = a;
+    }
+    assert.ok(near(last, 60, 0.05) && n.still(60), 'settled: ' + last);
+});
+test('Needle: the same motion at any frame rate (worked out exactly over each step)', () => {
+    const a = new e36.Needle(22), b = new e36.Needle(22);
+    a.step(0, 0); b.step(0, 0);
+    let x, y;
+    for (let t = 10; t <= 200; t += 10) x = a.step(100, t);
+    for (let t = 50; t <= 200; t += 50) y = b.step(100, t);
+    assert.ok(near(x, y, 1e-6), x + ' / ' + y);
+});
+test('Needle: a steady sweep trails by 2 / w seconds; 20 Hz steps come out as one smooth glide', () => {
+    const n = new e36.Needle(22);
+    n.step(0, 0);
+    let a = 0;
+    for (let t = 1; t <= 2000; t++) a = n.step(t * 0.1, t);       // 100 degrees a second
+    assert.ok(near(200 - a, 100 * 2 / 22, 0.05), 'lag ' + (200 - a));
+    // the car's samples in 50 ms steps, drawn every 16 ms: the needle never stops or goes back while they climb
+    const m = new e36.Needle(22);
+    m.step(0, 0);
+    let prev = 0, prevV = 0, minV = Infinity;
+    for (let t = 16; t <= 1000; t += 16) {
+        const v = m.step(Math.floor(t / 50) * 5, t) - prev;        // 5 degrees each sample
+        if (t > 200) minV = Math.min(minV, v);
+        prev += v; prevV = v;
+    }
+    assert.ok(minV > 0.5, 'always moving on: the slowest frame ' + minV.toFixed(2) + ' deg (the 20 Hz tick: 0 for two frames of three)');
+    assert.ok(prevV > 0);
+});
 test('frac: linear between the ends', () => {
     const t = [[20, 0], [240, 1]];
     assert.strictEqual(e36.frac(130, t), 0.5);
@@ -162,14 +199,36 @@ test('layout: only the backdrop pieces reach under the hood or the belt light', 
     const bad = warns.filter((s) => !/^(dash|strip_|needles_)/.test(s));     // the needles' layer: see-through
     assert.deepStrictEqual(bad, []);
 });
-test('layout: BMW\'s bottom row stays open (its range, clock, gear letter and outside temperature show there)', () => {
-    const over = loadLayout().widgets.filter((w) => overlaps(w, [0, 660, 1920, 720])).map((w) => w.id);
-    assert.deepStrictEqual(over, []);
+test('layout: the strips cover BMW\'s bottom row but for its range, drive mode, gear letter and electric range', () => {
+    const ws = loadLayout().widgets;
+    const over = ws.filter((w) => overlaps(w, [0, 660, 1920, 720]));
+    over.forEach((w) => assert.ok(w.type === 'e36dash' && w.stripRow && w.y === 660 && w.y + w.h === 720, w.id + ': only the strip pieces'));
+    ws.filter((w) => w.type === 'e36dash' && w.y === 0).forEach((d) => {
+        const mine = over.filter((w) => w.toggle === d.toggle);
+        // BMW's range 107..299, drive mode 1223..1314 and gear letter 1380..1460, electric range 1696..1842 (car photo
+        // Nov 17 2026) stay open; its clock 330..448, messages, outside temperature 1541..1674 are covered
+        [[107, 299], [1223, 1314], [1380, 1460], [1696, 1842]].forEach(([x0, x1]) =>
+            assert.deepStrictEqual(mine.filter((w) => overlaps(w, [x0, 660, x1, 720])).map((w) => w.id), [], d.id + ' ' + x0));
+        [[330, 448], [700, 1060], [1541, 1674]].forEach(([x0, x1]) => {
+            for (let x = x0; x < x1; x++) assert.ok(mine.some((w) => x >= w.x && x < w.x + w.w), d.id + ': x ' + x + ' covered');
+        });
+        // each hole inside a strip, clear of its rounded corners
+        const spans = mine.map((w) => [w.x, w.x + w.w]).sort((a, b) => a[0] - b[0]);
+        spans.slice(1).forEach((g, i) => {
+            const h0 = spans[i][1], h1 = g[0];
+            assert.ok(d.strips.some((s) => h0 >= s[0] + d.stripR && h1 <= s[0] + s[2] - d.stripR), d.id + ': hole ' + h0 + '..' + h1);
+        });
+        assert.ok(d.strips.every((s) => s[1] === 660 && s[1] + s[3] >= 720), d.id + ': the strips fill the row');
+    });
 });
-test('layout: the LCD shows only distances (the range and the trip), one row as on the car', () => {
-    const lcd = loadLayout().widgets.filter((w) => /^l(eu|us)_/.test(w.id)).map((w) => w.text);
-    assert.ok(lcd.length > 0);
-    lcd.forEach((t) => assert.ok(!/time|ampm|ambient|temp/.test(t), t));
+test('layout: the LCD: the range and the trip, under them the clock and the outside temperature', () => {
+    ['eu', 'us', 'eum3', 'usm3'].forEach((t) => {
+        const lcd = loadLayout().widgets.filter((w) => w.id.indexOf('l' + t + '_') === 0);
+        const row = (ids) => ids.map((n) => lcd.find((w) => w.id === 'l' + t + '_' + n));
+        const [rng, trip] = row(['range', 'trip']), [time, out] = row(['time', 'out']);
+        assert.ok(/range/.test(rng.text) && /trip/.test(trip.text) && /time/.test(time.text) && /ambient/.test(out.text), t);
+        assert.ok(time.y > rng.y + rng.h / 2 && out.y === time.y, t + ': the second row under the first');
+    });
 });
 test('layout: each face has its e36dash, on its own units and redlines (the M3 on the 0 .. 8 rev counter)', () => {
     const ws = loadLayout().widgets.filter((w) => w.type === 'e36dash' && w.y === 0);

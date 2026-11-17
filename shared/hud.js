@@ -305,6 +305,10 @@ const MAX_CONN = 4;              // connections a layout may ask for ("conn"): 3
 const PIXEL_BYTES = 16 * 1024 * 1024;   // cluster-render's pixel memory for every app's images together (CompositorLimits.pixel_bytes)
 const SHEET_AREA_FRAC = 4;       // the first sheet size limit: 1/4 of the target area (see the header)
 const TICK_MS = 50;              // 20 Hz: shift bar and gauges
+// the E36's needles (e36needles) move at the display's rate, each with a real needle's inertia (shared/e36.js Needle):
+// at the 20 Hz tick the rev needle stepped visibly on the car (Nov 17 2026). One small uniform a frame while they move.
+const NEEDLE_MS = 16;
+const NEEDLE_W = 22;             // 1/s: a steady sweep trails by 2 / 22 s (90 ms; the 120 ms rpm filter it replaces trailed 120)
 const TEXT_MS = 200;             // text re-draws at most 5 times a second (what BMW's own readouts do)
 const TARGET_SIZES = { hud: [800, 480], panel: [1920, 720] };
 const MODE_KEY = { comfort: 'inComfort', sport: 'inSport', eco: 'inEco' };
@@ -924,6 +928,7 @@ class HudApp {
         this.started = true;
         this.clients.forEach((c) => c.connect());
         this.tickTimer = setInterval(() => this._guard('tick', () => this._tick()), TICK_MS);
+        this.needleTimer = setInterval(() => this._guard('needles', () => this._needleTick()), NEEDLE_MS);
         // Auto theme: check for sunrise / sunset once a minute; the status line too
         this.themeTimer = setInterval(() => this._guard('theme check', () => {
             if (this._themeName() !== this.themeName || this._nightDim() !== this.nightOn || this._hudHoliday() !== (this.hudHoliday || null) ||
@@ -1007,6 +1012,7 @@ class HudApp {
 
     stop() {
         clearInterval(this.tickTimer);
+        clearInterval(this.needleTimer);
         clearInterval(this.themeTimer);
         clearInterval(this.statusTimer);
         clearInterval(this.dmeTimer);
@@ -2200,6 +2206,8 @@ class HudApp {
             c.uniform(ref, 'u_winR', Wn.map((g) => (g ? g[4] : 0)));
             c.uniform(ref, 'u_arrow', flat(pad(w.arrows || [], 2, [0, 0, 0, 0])), { type: 'vec4' });
             c.uniform(ref, 'u_light', [this.nightOn ? 0 : 1]);     // the glass's glare by day only
+            c.uniform(ref, 'u_strip', flat(pad(w.strips || [], 3, [0, 0, 0, 0])), { type: 'vec4' });
+            c.uniform(ref, 'u_stripR', [w.stripR || 0]);
         } else if (w.type === 'e36econ') {
             // the E36 economy (or the M3's oil temperature) gauge: its own small layer over the rev counter's lower cut
             const E = w.econ, T = w.tach, tk = E.ticks.slice(0, 16);     // [x0, y0, x1, y1, width]
@@ -2596,7 +2604,20 @@ class HudApp {
         this.flash = flashing ? Math.floor(now / 62.5) % 2 === 0 : false;
         // the count-in's latched flash: the shift bars and arcs flash with it at 5 Hz (shift_cue.js)
         if (!flashing && this._countIn() && this.cue.now.shift) this.flash = this.cue.blink(now);
-        this.widgets.forEach((x) => this._guard('widget ' + x.w.id, () => this._update(x, now, false)));
+        this.widgets.forEach((x) => { if (x.w.type !== 'e36needles') this._guard('widget ' + x.w.id, () => this._update(x, now, false)); });
+    }
+
+    /** The E36's needles, at the display's rate (NEEDLE_MS); nothing to do in the other themes. */
+    _needleTick() {
+        if (!this.client.ready) return;
+        const now = Date.now();
+        this.widgets.forEach((x) => { if (x.w.type === 'e36needles') this._guard('widget ' + x.w.id, () => this._update(x, now, false)); });
+    }
+
+    /** The engine speed as it comes: the shift test's sweep while it runs, else the car's own (rpm, unfiltered). */
+    _rpmIn(now) {
+        const test = this._testRpm(now);
+        return isNum(test) ? test : this.car.data().rpm;
     }
 
     /** This drive's distance and moving time (the car's own data only; standing still doesn't count). */
@@ -2616,8 +2637,7 @@ class HudApp {
 
     /** BMW-like tach: a 120 ms filter, and a readout that moves in 50 rpm steps, only by 40 rpm or more. */
     _smoothRpm(now) {
-        const test = this._testRpm(now);
-        const raw = isNum(test) ? test : this.car.data().rpm;
+        const raw = this._rpmIn(now);
         const dt = this.lastTickT ? Math.min(500, now - this.lastTickT) : 0;
         this.lastTickT = now;
         if (!isNum(raw)) { this.rpmF = null; this.rpmShown = null; return; }
@@ -2811,14 +2831,17 @@ class HudApp {
             x.c.uniform(x.ref, 'u_fuel', [vals[2]]);
             x.c.uniform(x.ref, 'u_oil', [vals[3]]);
         } else if (w.type === 'e36needles') {
-            // the needles: each dial's value read off its traced scale ([value, angle] pairs); no data parks it on its pin
+            // the needles: each dial's value read off its traced scale ([value, angle] pairs); no data parks it on its pin.
+            // Each follows its angle with inertia (e36.Needle), the rev needle from the unfiltered rpm: the follower is
+            // its only smoothing
             const sp = this._raw('speed'), R = this._e36Revs(w);
-            const val = (sig) => (sig === 'speed' ? (isNum(sp) && w.mph ? sp * 0.621371 : sp) : this._raw(sig));
+            const val = (sig) => (sig === 'speed' ? (isNum(sp) && w.mph ? sp * 0.621371 : sp) : sig === 'rpm' ? this._rpmIn(now) : this._raw(sig));
+            if (!x.ndl) x.ndl = [0, 1, 2, 3].map(() => new e36.Needle(NEEDLE_W));
             const ang = [0, 1, 2, 3].map((i) => {
                 const d = (w.dials || [])[i];
                 if (!d) return 0;
                 const a = e36.frac(val(d.signal), i === R.dial && R.map ? R.map : d.map);
-                return Math.round((a === null ? d.rest : a) * 10) / 10;
+                return Math.round(x.ndl[i].step(a === null ? d.rest : a, now) * 10) / 10;
             });
             // the economy needle: the M3's oil temperature (its scale in F on the mph face), or the economy estimated
             // from the engine's power (shared/e36.js): the car has no fuel-flow signal

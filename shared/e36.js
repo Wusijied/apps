@@ -68,6 +68,27 @@ class Smooth {
     }
 }
 
+/** A needle with inertia: a critically damped follower (no overshoot) of its target angle, worked out exactly for the
+ *  time since the last step, so any frame rate gives the same motion. The car's samples arrive in steps; this turns
+ *  them into one glide with a smooth speed, as a real needle's. `w` (1/s): how quick, a steady sweep trails by 2 / w
+ *  seconds. The first target is taken as is. */
+class Needle {
+    constructor(w) { this.w = w; this.a = null; this.v = 0; this.at = 0; }
+
+    step(target, now) {
+        if (this.a === null || !isFinite(this.a)) { this.a = target; this.v = 0; this.at = now; return target; }
+        const dt = Math.min(0.25, Math.max(0, now - this.at) / 1000), w = this.w;
+        this.at = now;
+        const e = this.a - target, k = Math.exp(-w * dt), b = this.v + w * e;
+        this.a = target + (e + b * dt) * k;
+        this.v = (this.v - w * b * dt) * k;
+        return this.a;
+    }
+
+    /** Still: on its target and not moving (to well under the 0.1 degree the layer is sent in). */
+    still(target) { return this.a !== null && Math.abs(this.a - target) < 0.02 && Math.abs(this.v) < 0.5; }
+}
+
 /** The trip as the E36's LCD shows it: 000.0, in miles (us) or km, rolling over at 1000. */
 function tripText(km, us) {
     const v = isNum(km) ? Math.max(0, km) / (us ? 1.609344 : 1) : 0;
@@ -76,4 +97,4 @@ function tripText(km, us) {
     return (s.length < 3 ? '000'.slice(s.length) + s : s) + '.' + (tenths % 10);
 }
 
-module.exports = { frac, flowLph, economy, Smooth, tripText };
+module.exports = { frac, flowLph, economy, Smooth, Needle, tripText };
