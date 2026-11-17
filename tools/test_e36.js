@@ -206,10 +206,10 @@ test('layout: the strips cover BMW\'s bottom row but for its range, drive mode, 
     ws.filter((w) => w.type === 'e36dash' && w.y === 0).forEach((d) => {
         const mine = over.filter((w) => w.toggle === d.toggle);
         // BMW's range 107..299, drive mode 1223..1314 and gear letter 1380..1460, electric range 1696..1842 (car photo
-        // Nov 17 2026) stay open; its clock 330..448, messages, outside temperature 1541..1674 are covered
+        // Nov 17 2026) stay open; its clock 330..448, messages, outside temperature from 1475 (bench/page.html backdrop, Nov 13; 1541 on Nov 17) are covered
         [[107, 299], [1223, 1314], [1380, 1460], [1696, 1842]].forEach(([x0, x1]) =>
             assert.deepStrictEqual(mine.filter((w) => overlaps(w, [x0, 660, x1, 720])).map((w) => w.id), [], d.id + ' ' + x0));
-        [[330, 448], [700, 1060], [1541, 1674]].forEach(([x0, x1]) => {
+        [[330, 448], [700, 1060], [1462, 1674]].forEach(([x0, x1]) => {
             for (let x = x0; x < x1; x++) assert.ok(mine.some((w) => x >= w.x && x < w.x + w.w), d.id + ': x ' + x + ' covered');
         });
         // each hole inside a strip, clear of its rounded corners

@@ -35,8 +35,9 @@ STRIP_R = 14
 # BMW's own items that show through the strips (x0, x1; the layer pieces skip them), from the car photo of Nov 17
 # 2026 (the theme over BMW's row): the range with its pump icon at 107..299 (room for four digits), the drive mode
 # at 1223..1314 (room for SPORT PLUS / COMFORT either side) and the gear letter (BMW blacks out its gear slot while
-# anything covers x 1380..1460), the electric range at 1696..1842.
-HOLES = [(60, 322), (1130, 1480), (1680, 1880)]
+# anything covers x 1380..1460), the electric range at 1696..1842. The hole ends just past the gear slot: the outside
+# temperature has been seen from x 1475 (the Nov 13 2026 photo the bench's backdrop is drawn from; 1541 on Nov 17).
+HOLES = [(60, 322), (1130, 1462), (1680, 1880)]
 
 
 def lerp_ang(table, v):
