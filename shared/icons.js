@@ -5,7 +5,7 @@
  *   gauge (engine), shock (chassis), wheel (steering), cog (gearbox), stack (the gear's shift program
  *   lines), therm (coolant), oilcan (oil), fuel (pump), tyre (a wheel seen from the side: ring, hub, tread notches),
  *   e36cool (the E36 coolant gauge's thermometer over waves), e36oil (the E36 M3's oil temperature mark: a thermometer
- *   over an oil can).
+ *   over an oil can), e36range (the range: an arrow into the fuel pump, as the E90's LCD shows it).
  * LOGOS are drawn in their own colours (the icon's colour is not used), in their own units at their own aspect:
  *   e36m (the E36 M3's /M badge: three slanted stripes and the M, traced off design/photos/e36/m3-kmh-jpn-day-face.png).
  */
@@ -66,6 +66,9 @@ const ICONS = {
         seg(x, y, 0.2, 0.725, 0.62, 0.725) - 0.038, seg(x, y, 0.6, 0.73, 0.9, 0.625) - 0.045,
         seg(x, y, 0.76, 0.76, 0.64, 0.89) - 0.04, seg(x, y, 0.21, 0.9, 0.66, 0.9) - 0.04, seg(x, y, 0.21, 0.72, 0.21, 0.9) - 0.04,
         disc(x, y, 0.94, 0.865, 0.045), seg(x, y, 0.94, 0.79, 0.94, 0.86) - 0.02),
+    // the arrow on the left, the pump (fuel's, 0.62 of the box) on the right, its lines a little bolder for the size
+    e36range: (x, y) => Math.min(seg(x, y, 0.03, 0.5, 0.33, 0.5) - 0.035, seg(x, y, 0.33, 0.5, 0.22, 0.39) - 0.035,
+        seg(x, y, 0.33, 0.5, 0.22, 0.61) - 0.035, ICONS.fuel((x - 0.38) / 0.62, (y - 0.19) / 0.62) * 0.62 - 0.008),
     oilcan: (x, y) => Math.min(seg(x, y, 0.2, 0.62, 0.6, 0.62) - 0.12, seg(x, y, 0.6, 0.58, 0.9, 0.44) - 0.04, disc(x, y, 0.92, 0.66, 0.05), seg(x, y, 0.3, 0.46, 0.3, 0.34) - 0.035, seg(x, y, 0.22, 0.34, 0.38, 0.34) - 0.04),
 };
 

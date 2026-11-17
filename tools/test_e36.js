@@ -61,6 +61,67 @@ test('Needle: a steady sweep trails by 2 / w seconds; 20 Hz steps come out as on
     assert.ok(minV > 0.5, 'always moving on: the slowest frame ' + minV.toFixed(2) + ' deg (the 20 Hz tick: 0 for two frames of three)');
     assert.ok(prevV > 0);
 });
+test('Needle.ahead: where step() will be, without moving it', () => {
+    const n = new e36.Needle(28);
+    n.step(0, 0); n.step(50, 30);
+    const want = n.ahead(50, 80), a = n.a;
+    assert.strictEqual(n.a, a);
+    assert.ok(near(n.step(50, 110), want, 1e-9));
+});
+// the car's side of a path: cluster-render takes a uniform up at its next 30 Hz tick (here a random phase and up to
+// 8 ms on the socket), the display draws at 60 Hz and places the needle from the path it has then
+function drive(sendMs, sampleMs, rpmAt, mode) {
+    const W = 28, KEEP = 0.06, AHEAD = 0.07, n = new e36.Needle(W);
+    const queue = [];
+    let have = null, prev = null, angle = null, sampleAt = -1, sample = 0;
+    const frames = [];
+    let seed = 7;
+    const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+    const tickPhase = rnd() * 33.3;
+    for (let ms = 0; ms <= 3000; ms++) {
+        if (ms - sampleAt >= sampleMs) { sampleAt = ms; sample = rpmAt(ms); }       // the car's samples, in steps
+        if (ms % sendMs === 0) {
+            n.step(sample, ms);
+            if (mode === 'path') {
+                prev = e36.nextPath(prev, ms / 1000, KEEP, AHEAD, n.ahead(sample, (KEEP + AHEAD) * 1000));
+                queue.push({ at: ms + rnd() * 8, v: prev });
+            } else queue.push({ at: ms + rnd() * 8, v: n.a });
+        }
+        if ((ms - tickPhase) % 33.333 < 1 && ms >= tickPhase) {          // the service's tick: what has arrived goes
+            while (queue.length && queue[0].at <= ms) { const q = queue.shift(); if (mode === 'path') have = q.v; else angle = q.v; }
+        }
+        if (ms % 16.667 < 1 && ms > 500) frames.push(mode === 'path' ? (have ? e36.pathAt(have, ms / 1000) : 0) : angle);
+    }
+    return frames;
+}
+test('needle paths: the renderer\'s frames move evenly, where angles sent at 60 Hz step (cluster-render\'s 30 Hz tick)', () => {
+    const rev = (ms) => 1000 + 2500 * Math.max(0, Math.min(1, (ms - 400) / 2000));     // a steady pull, 75 rpm a tick
+    const steps = (f) => f.slice(1).map((v, i) => v - f[i]).slice(5, -60);              // per display frame, mid-pull
+    const evenness = (d) => { const m = d.reduce((a, b) => a + b, 0) / d.length; return Math.max.apply(null, d.map((x) => Math.abs(x - m))) / m; };
+    const path = evenness(steps(drive(50, 20, rev, 'path'))), angles = evenness(steps(drive(16, 20, rev, 'angle')));
+    assert.ok(path < 0.25, 'paths: a frame\'s step off the mean by ' + (path * 100).toFixed(0) + ' %');
+    assert.ok(angles > 0.9, 'angles at 60 Hz still step (a frame with none, then two): ' + (angles * 100).toFixed(0) + ' %');
+});
+test('nextPath: the new path is the one before over the kept stretch (a late one joins on)', () => {
+    let P = null;
+    const n = new e36.Needle(28);
+    for (let k = 0; k < 40; k++) {
+        const t = k * 0.05 + (k % 3) * 0.004, to = 30 * Math.sin(k / 4);
+        n.step(to, t * 1000);
+        const Q = e36.nextPath(P, t, 0.06, 0.07, n.ahead(to, 130));
+        if (P) for (let s = -0.02; s <= 0.06; s += 0.005) assert.ok(near(e36.pathAt(Q, t + s), e36.pathAt(P, t + s), 1e-9), k + ' at ' + s);
+        assert.strictEqual(Q.a[3], n.ahead(to, 130));
+        P = Q;
+    }
+});
+test('pathAt: held after the last key, at most 0.25 s back before the first', () => {
+    const P = { t: [10, 0.06, 0.13, 0.13], a: [5, 6, 20, 20] };
+    assert.strictEqual(e36.pathAt(P, 99), 20);
+    assert.ok(near(e36.pathAt(P, 9.8), 5 - (1 / 0.06) * 0.2, 1e-9), 'back along the first leg');
+    assert.strictEqual(e36.pathAt(P, 9), 5, 'clocks further apart: the first key, never off along the line');
+    assert.strictEqual(e36.pathAt(P, -500), 5);
+    assert.ok(near(e36.pathAt(P, 10.03), 5.5, 1e-9));
+});
 test('frac: linear between the ends', () => {
     const t = [[20, 0], [240, 1]];
     assert.strictEqual(e36.frac(130, t), 0.5);
@@ -199,7 +260,7 @@ test('layout: only the backdrop pieces reach under the hood or the belt light', 
     const bad = warns.filter((s) => !/^(dash|strip_|needles_)/.test(s));     // the needles' layer: see-through
     assert.deepStrictEqual(bad, []);
 });
-test('layout: the strips cover BMW\'s bottom row but for its range, drive mode, gear letter and electric range', () => {
+test('layout: the strips cover BMW\'s bottom row but for its drive mode, gear letter and electric range', () => {
     const ws = loadLayout().widgets;
     const over = ws.filter((w) => overlaps(w, [0, 660, 1920, 720]));
     over.forEach((w) => assert.ok(w.type === 'e36dash' && w.stripRow && w.y === 660 && w.y + w.h === 720, w.id + ': only the strip pieces'));
@@ -207,9 +268,9 @@ test('layout: the strips cover BMW\'s bottom row but for its range, drive mode, 
         const mine = over.filter((w) => w.toggle === d.toggle);
         // BMW's range 107..299, drive mode 1223..1314 and gear letter 1380..1460, electric range 1696..1842 (car photo
         // Nov 17 2026) stay open; its clock 330..448, messages, outside temperature from 1475 (bench/page.html backdrop, Nov 13; 1541 on Nov 17) are covered
-        [[107, 299], [1223, 1314], [1380, 1460], [1696, 1842]].forEach(([x0, x1]) =>
+        [[1223, 1314], [1380, 1460], [1696, 1842]].forEach(([x0, x1]) =>
             assert.deepStrictEqual(mine.filter((w) => overlaps(w, [x0, 660, x1, 720])).map((w) => w.id), [], d.id + ' ' + x0));
-        [[330, 448], [700, 1060], [1462, 1674]].forEach(([x0, x1]) => {
+        [[107, 299], [330, 448], [700, 1060], [1462, 1674]].forEach(([x0, x1]) => {
             for (let x = x0; x < x1; x++) assert.ok(mine.some((w) => x >= w.x && x < w.x + w.w), d.id + ': x ' + x + ' covered');
         });
         // each hole inside a strip, clear of its rounded corners
@@ -228,6 +289,10 @@ test('layout: the LCD: the range and the trip, under them the clock and the outs
         const [rng, trip] = row(['range', 'trip']), [time, out] = row(['time', 'out']);
         assert.ok(/range/.test(rng.text) && /trip/.test(trip.text) && /time/.test(time.text) && /ambient/.test(out.text), t);
         assert.ok(time.y > rng.y + rng.h / 2 && out.y === time.y, t + ': the second row under the first');
+        // the icon just before the figure's first digit (hud.js text "lead"), room for it and four digits
+        assert.ok(rng.lead && rng.lead.icon === 'e36range' && rng.align === 'right', t + ': the range\'s icon leads its figure');
+        assert.ok(rng.w >= 4 * 24 + rng.lead.size + rng.lead.gap, t + ': room for the icon and four digits');
+        assert.ok(rng.lead.cy > rng.lead.size / 2 - 4 && rng.lead.cy < rng.h, t + ': on the digits\' row');
     });
 });
 test('layout: each face has its e36dash, on its own units and redlines (the M3 on the 0 .. 8 rev counter)', () => {

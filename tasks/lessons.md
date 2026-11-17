@@ -12,3 +12,8 @@
   check how it looks on the car's photos: the E36's needle hubs are flat caps of fine-grained plastic, not domes. Give a
   part only the depth it really has (its shadow) and the surface it really has (grain). (E36 realism pass, Nov 17 2026:
   domed, highlighted hubs; the user corrected it.)
+- **Moving a value by a clock the app can't read:** when a shader extrapolates from the renderer's clock (`u_time`)
+  along a path the app sends, anything outside the window where the app's idea of that clock is trusted must hold a
+  sent value, never run on along a slope; and the bench's clock has to be the service's, with the bench restarted
+  (server.js and page.html don't live-reload) before judging it. (E36 needle paths, Nov 17 2026: a 0.25 s back
+  extrapolation sent the needles jumping on the user's bench, whose page still had the old clock.)

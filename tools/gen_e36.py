@@ -33,11 +33,11 @@ W, H, ROW = 1920, 720, 660           # the cluster; BMW's bottom row is y 660..7
 STRIPS = [[24, ROW, 382, 80], [424, ROW, 1072, 80], [1514, ROW, 382, 80]]
 STRIP_R = 14
 # BMW's own items that show through the strips (x0, x1; the layer pieces skip them), from the car photo of Nov 17
-# 2026 (the theme over BMW's row): the range with its pump icon at 107..299 (room for four digits), the drive mode
-# at 1223..1314 (room for SPORT PLUS / COMFORT either side) and the gear letter (BMW blacks out its gear slot while
-# anything covers x 1380..1460), the electric range at 1696..1842. The hole ends just past the gear slot: the outside
+# 2026 (the theme over BMW's row): the drive mode at 1223..1314 (room for SPORT PLUS / COMFORT either side) and the
+# gear letter (BMW blacks out its gear slot while anything covers x 1380..1460), the electric range at 1696..1842. The hole ends just past the gear slot: the outside
 # temperature has been seen from x 1475 (the Nov 13 2026 photo the bench's backdrop is drawn from; 1541 on Nov 17).
-HOLES = [(60, 322), (1130, 1462), (1680, 1880)]
+# BMW's range (its pump icon and figure at 107..299) stays behind the left strip: the LCD shows it, with its own icon.
+HOLES = [(1130, 1462), (1680, 1880)]
 
 
 def lerp_ang(table, v):
@@ -653,8 +653,13 @@ def build(face, wid, toggle):
                 'x': round(X(lx + x0)), 'y': round(Y(ly + ycen) - h / 2), 'w': round(L(x1 - x0)), 'h': h,
                 'text': text, 'font': fname, 'color': color, 'align': align, 'toggle': toggle}
     r1, r2 = 18, 50
+    # the range marked as the E90's LCD marks it: an arrow into the fuel pump just before the figure, wherever its
+    # digits start (hud.js text "lead"), centred on the digits' height
+    fl = font('e_lcd')
+    rng = lcd('range', '{{range}}', 'e_lcd', 4, 122, r1, 'right')
+    rng['lead'] = {'icon': 'e36range', 'size': 32, 'gap': 4, 'cy': round(fl['baseline'] - 0.35 * fl['size'], 1)}
     lcds = [
-        lcd('range', '{{range}}', 'e_lcd', 4, 122, r1, 'right'),
+        rng,
         lcd('unit', unit, 'e_sm', 126, 172, r1 + 2, 'left'),
         lcd('trip', '{{trip}}', 'e_lcd', 176, 262, r1, 'right'),
         lcd('time', '{{time}}', 'e_lcd2', 6, 96, r2, 'left'),

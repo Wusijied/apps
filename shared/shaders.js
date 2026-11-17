@@ -1958,8 +1958,9 @@ void main() {
 const E36NEEDLES = `// The E36 theme's needles (widget e36needles, tools/gen_e36.py), a see-through layer over the face (e36dash), the
 // economy gauge (e36econ) and the printed figures and icons, as on the car where the needles sweep over the print: the
 // economy (or the M3's oil) needle first, kept inside its window, then the four dials' needles with their dark
-// counterweights and hubs (the rev counter's over the economy one). Positions in target px, u_origin the layer's
-// top-left. v_uv (0,0) is the top-left.
+// counterweights and hubs (the rev counter's over the economy one). The dials' needles move by the renderer's own clock
+// (u_time, layer "time" 1) along paths the app sends (shared/e36.js nextPath), so they move on every display frame.
+// Positions in target px, u_origin the layer's top-left. v_uv (0,0) is the top-left.
 #ifdef GL_FRAGMENT_PRECISION_HIGH
 precision highp float;
 #else
@@ -1971,7 +1972,9 @@ uniform vec2 u_origin;
 uniform vec3 u_col[3];     // needle, hub, bezel (the dark ring round the hub)
 uniform vec4 u_piv[4];     // fuel, speed, revs, coolant: pivot x, y, hub radius, counterweight length
 uniform vec2 u_ndl[4];     // needle length, width (length 0 = none)
-uniform vec4 u_ang;        // the four needle angles, degrees clockwise from 12 o'clock
+uniform vec4 u_path[8];    // per needle (fuel, speed, revs, coolant) a path: its keys' times (the first in u_time's
+                           // seconds, the others after it), then their angles (degrees clockwise from 12 o'clock)
+uniform float u_time;      // the renderer's clock: seconds since the layer was attached, 0 .. 3600 and again
 uniform vec4 u_econ;       // the economy needle: pivot x, y, length (0 = none), its window's top y
 uniform vec2 u_econB;      // its angle, width
 uniform vec4 u_cham;       // the window's top corners: left corner x, its slope down to the left, right corner x, its slope
@@ -1980,6 +1983,16 @@ uniform float u_light;     // daylight: 1 by day, 0 at night (softer shadows)
 
 float cov(float d) { return clamp(0.5 - d, 0.0, 1.0); }
 vec2 dir(float a) { float r = radians(a); return vec2(sin(r), -cos(r)); }
+// a path's angle now (shared/e36.js pathAt): straight between its keys, held after the last, back along the first leg
+// before the first (up to 0.25 s; further back the clocks disagree: the first key); across the clock's wrap at 3600 s
+float ang(vec4 T, vec4 A) {
+    float s = u_time - T.x;
+    s -= 3600.0 * floor((s + 1800.0) / 3600.0);
+    if (s < -0.25) return A.x;
+    if (s < T.y) return A.x + (A.y - A.x) * s / max(T.y, 0.0001);
+    if (s < T.z) return A.y + (A.z - A.y) * (s - T.y) / max(T.z - T.y, 0.0001);
+    return A.z + (A.w - A.z) * min(1.0, (s - T.z) / max(T.w - T.z, 0.0001));
+}
 // a fixed noise per pixel (no sin: it loses precision at screen coordinates)
 float hash(vec2 p) { vec3 q = fract(p.xyx * 0.1031); q += dot(q, q.yzx + 33.33); return fract((q.x + q.y) * q.z); }
 // a dial's needle at d from its pivot, pointing u: the distances to its counterweight, its bar (tapered) and its hub
@@ -2008,18 +2021,17 @@ void main() {
     }
 
     // the dials' needles never reach each other: the one this pixel is near (if any) is found once, then drawn
-    float K = -1.0, A = 0.0;
-    vec4 V = vec4(0.0);
+    float K = -1.0;
+    vec4 V = vec4(0.0), PT = vec4(0.0), PA = vec4(0.0);
     vec2 N = vec2(0.0);
     for (int i = 0; i < 4; i++) {
         vec4 v = u_piv[i];
         vec2 n = u_ndl[i];
         if (n.x <= 0.0 || length(p - v.xy) > max(n.x, v.w) + n.y + 16.0) continue;
-        K = float(i); V = v; N = n;
-        A = i == 0 ? u_ang.x : i == 1 ? u_ang.y : i == 2 ? u_ang.z : u_ang.w;
+        K = float(i); V = v; N = n; PT = u_path[2 * i]; PA = u_path[2 * i + 1];
     }
     if (K >= 0.0) {
-        vec2 d = p - V.xy, u = dir(A);
+        vec2 d = p - V.xy, u = dir(ang(PT, PA));
         // its shadow first (over the economy needle, which lies lower): the needle stands off the dial, the light from
         // above and a little left. "Over" in straight alpha: what is drawn next covers what is under it
         vec3 s = parts(d - vec2(3.0, 8.0), u, V, N);

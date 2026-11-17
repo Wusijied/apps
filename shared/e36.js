@@ -85,8 +85,52 @@ class Needle {
         return this.a;
     }
 
+    /** Where it will be `ms` from its last step if the target holds (nothing changes). */
+    ahead(target, ms) {
+        if (this.a === null) return target;
+        const dt = ms / 1000, w = this.w, e = this.a - target, b = this.v + w * e;
+        return target + (e + b * dt) * Math.exp(-w * dt);
+    }
+
     /** Still: on its target and not moving (to well under the 0.1 degree the layer is sent in). */
     still(target) { return this.a !== null && Math.abs(this.a - target) < 0.02 && Math.abs(this.v) < 0.5; }
+}
+
+/* A needle's path in the renderer's own clock (cluster-render layer "time" 1: u_time, seconds since the layer was
+ * attached, worked out on every display frame). cluster-render applies uniforms only at its 30 Hz tick, out of step
+ * with the display, so a needle sent as an angle moves in uneven steps however often it is sent. Sent as a path, the
+ * renderer places it on every frame, and a path landing a tick late is still right.
+ * A path: four keys, t ([the first's time in that clock (s), the others' after it]) and a (angles); straight between
+ * keys, held after the last, and before the first back along the first leg (at most PATH_BACK s: our idea of the
+ * renderer's clock may run a little ahead of it). Further back than that our clock is wrong (the layer attached again
+ * unseen, a bench page with another clock): the first key, so the needle at worst steps as sent, never runs off along
+ * a line. The shader's ang() reads it the same way. */
+const PATH_BACK = 0.25;
+
+/** A path's angle at t (s, our idea of the renderer's clock). */
+function pathAt(P, t) {
+    const T = P.t, A = P.a, s = t - T[0];
+    if (s < -PATH_BACK) return A[0];
+    if (s < T[1]) return A[0] + (A[1] - A[0]) * s / Math.max(T[1], 1e-4);
+    if (s < T[2]) return A[1] + (A[2] - A[1]) * (s - T[1]) / Math.max(T[2] - T[1], 1e-4);
+    return A[2] + (A[3] - A[2]) * Math.min(1, (s - T[2]) / Math.max(T[3] - T[2], 1e-4));
+}
+
+/** The next path, made at t (s): the one before (`prev`, the last sent) kept as it was for `keep` s, so whenever within
+ *  that the renderer takes the new one up the needle goes on without a jump; then straight on to `to` in `ahead` s
+ *  more. Without one before: still at `to` (the first, or after the layer was attached again). */
+function nextPath(prev, t, keep, ahead, to) {
+    if (!prev) return { t: [t, keep, keep + ahead, keep + ahead], a: [to, to, to, to] };
+    const pts = [[0, pathAt(prev, t)]];
+    let knot = null;          // the one before's own turn within the kept stretch, if any (the latest)
+    for (let i = 1; i < 4; i++) {
+        const k = prev.t[0] + prev.t[i] - t;
+        if (k > 1e-3 && k < keep - 1e-3) knot = k;
+    }
+    if (knot !== null) pts.push([knot, pathAt(prev, t + knot)]);
+    pts.push([keep, pathAt(prev, t + keep)], [keep + ahead, to]);
+    while (pts.length < 4) pts.push(pts[pts.length - 1].slice());
+    return { t: [t, pts[1][0], pts[2][0], pts[3][0]], a: pts.map((p) => p[1]) };
 }
 
 /** The trip as the E36's LCD shows it: 000.0, in miles (us) or km, rolling over at 1000. */
@@ -97,4 +141,4 @@ function tripText(km, us) {
     return (s.length < 3 ? '000'.slice(s.length) + s : s) + '.' + (tenths % 10);
 }
 
-module.exports = { frac, flowLph, economy, Smooth, Needle, tripText };
+module.exports = { frac, flowLph, economy, Smooth, Needle, PATH_BACK, pathAt, nextPath, tripText };

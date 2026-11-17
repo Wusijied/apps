@@ -46,7 +46,9 @@
  * rebuild cluster-render's own status text is asked for and logged.
  *
  * Widget types (hud/layouts/*.json, or <data>/layouts/ overrides, see layouts.js):
- *   text      image layer; template tokens below, a font from hud/fonts, colour role
+ *   text      image layer; template tokens below, a font from hud/fonts, colour role; "lead": { icon, size, gap, cy } an
+ *             icon (icons.js) in the text's colour just before its first character, wherever the alignment puts it
+ *             (size px square, gap px to the text, its centre cy px from the box's top; the E36 LCD's range)
  *   scale     image layer; the shift bar's rpm numbers (0 .. bar max / 1000), evenly spread
  *   stripe    image layer; the M tricolour stripe
  *   shiftbar  effect layer; shaders.js shiftbar, lit by rpm, zones from the redline
@@ -305,10 +307,15 @@ const MAX_CONN = 4;              // connections a layout may ask for ("conn"): 3
 const PIXEL_BYTES = 16 * 1024 * 1024;   // cluster-render's pixel memory for every app's images together (CompositorLimits.pixel_bytes)
 const SHEET_AREA_FRAC = 4;       // the first sheet size limit: 1/4 of the target area (see the header)
 const TICK_MS = 50;              // 20 Hz: shift bar and gauges
-// the E36's needles (e36needles) move at the display's rate, each with a real needle's inertia (shared/e36.js Needle):
-// at the 20 Hz tick the rev needle stepped visibly on the car (Nov 17 2026). One small uniform a frame while they move.
-const NEEDLE_MS = 16;
-const NEEDLE_W = 22;             // 1/s: a steady sweep trails by 2 / 22 s (90 ms; the 120 ms rpm filter it replaces trailed 120)
+// The E36's needles (e36needles): each follows its value with a real needle's inertia (shared/e36.js Needle) and goes
+// to the renderer as a path in its own clock (e36.nextPath, layer "time" 1), which it plays on every display frame.
+// Sent as angles they stepped on the car (Nov 17 2026), even at 60 Hz: cluster-render applies uniforms at its own
+// 30 Hz tick, out of step with the display. A path keeps the one before for PATH_KEEP s (longer than the tick and the
+// tick after which we send again), so one landing late still joins on.
+const NEEDLE_W = 28;             // 1/s: a steady sweep trails the value by 2 / 28 s (71 ms)
+const PATH_KEEP = 0.06;          // s
+const PATH_AHEAD = 0.07;         // s: then on to where the needle will be by then
+function mono() { const t = process.hrtime(); return t[0] * 1000 + t[1] / 1e6; }
 const TEXT_MS = 200;             // text re-draws at most 5 times a second (what BMW's own readouts do)
 const TARGET_SIZES = { hud: [800, 480], panel: [1920, 720] };
 const MODE_KEY = { comfort: 'inComfort', sport: 'inSport', eco: 'inEco' };
@@ -859,6 +866,8 @@ class HudApp {
             this.layerStates.set(key, st);
             const name = () => { const w = this._widgetOf(ci, ref); return 'layer ' + ref + tag + (w ? ' (' + w + ')' : ''); };
             if (state === 'error' || (state === 'waiting' && !same)) this.log.warn(name() + ' ' + state + (reason ? ': ' + reason : ''));
+            // a layer with u_time: its clock starts (again) as it is attached, about when it shows: paths start over
+            if (state === 'shown' && !same) this.widgets.forEach((x) => { if (x.ci === ci && x.ref === ref && x.w.type === 'e36needles') { x.t0 = mono(); x.path = null; } });
             if (state === 'stalled' && !same) {
                 // normal for a moment after a rebuild (pixels on their way); a problem only if it lasts
                 clearTimeout(this.stallTimers.get(key));
@@ -928,7 +937,6 @@ class HudApp {
         this.started = true;
         this.clients.forEach((c) => c.connect());
         this.tickTimer = setInterval(() => this._guard('tick', () => this._tick()), TICK_MS);
-        this.needleTimer = setInterval(() => this._guard('needles', () => this._needleTick()), NEEDLE_MS);
         // Auto theme: check for sunrise / sunset once a minute; the status line too
         this.themeTimer = setInterval(() => this._guard('theme check', () => {
             if (this._themeName() !== this.themeName || this._nightDim() !== this.nightOn || this._hudHoliday() !== (this.hudHoliday || null) ||
@@ -1012,7 +1020,6 @@ class HudApp {
 
     stop() {
         clearInterval(this.tickTimer);
-        clearInterval(this.needleTimer);
         clearInterval(this.themeTimer);
         clearInterval(this.statusTimer);
         clearInterval(this.dmeTimer);
@@ -1080,6 +1087,23 @@ class HudApp {
         x.c.pixels(ref, null, Buffer.alloc(G_ENV_TEX, 0));
         this.gEnvTex.set(key, ref);
         return ref;
+    }
+
+    /** A text widget's "lead" icon, painted into its picture just before the text (see the header). */
+    _leadIcon(buf, w, s, font, col) {
+        const L = w.lead, sz = Math.round(L.size), tw = textRaster.measure(s, font, w.spacing);
+        const x0 = w.align === 'right' ? w.w - tw : w.align === 'center' ? Math.round((w.w - tw) / 2) : 0;
+        const ix = Math.round(x0 - (L.gap || 0) - sz), iy = Math.round((isNum(L.cy) ? L.cy : w.h / 2) - sz / 2);
+        const ic = paintIcon(L.icon, sz, sz, col);
+        for (let y = 0; y < sz; y++) {
+            const dy = iy + y;
+            if (dy < 0 || dy >= w.h) continue;
+            for (let xx = 0; xx < sz; xx++) {
+                const dx = ix + xx, o = (y * sz + xx) * 4, d = (dy * w.w + dx) * 4;
+                if (dx < 0 || dx >= w.w || ic[o + 3] <= buf[d + 3]) continue;
+                ic.copy(buf, d, o, o + 4);
+            }
+        }
     }
 
     /** The glyph codes of a text in an atlas widget's cells, aligned; -1 is an empty cell. */
@@ -2109,7 +2133,8 @@ class HudApp {
             c = this._clientAt(this._connOf(w));
             const base = { target: this.target, klass: w.class || 'content', z: w.z || 0, x: w.x, y: w.y, w: w.w, h: w.h };
             if (IMAGE_TYPES[w.type]) ref = c.image(Object.assign({ iw: w.w, ih: w.h }, w.type === 'nav' ? this._navImage(w) : null, base));
-            else ref = c.effect(Object.assign({ fs: w.type === 'swatch' ? calibration.SWATCH : shaders[w.type] }, base));
+            // the E36's needles read the renderer's clock (u_time): they are sent as paths in it
+            else ref = c.effect(Object.assign({ fs: w.type === 'swatch' ? calibration.SWATCH : shaders[w.type] }, w.type === 'e36needles' ? { time: true } : null, base));
             if (!ref) { this.log.warn('widget "' + w.id + '": layer refused'); return; }
             this.placed.push({ c, ref, x: w.x, y: w.y, w: w.w, h: w.h });
         }
@@ -2604,14 +2629,7 @@ class HudApp {
         this.flash = flashing ? Math.floor(now / 62.5) % 2 === 0 : false;
         // the count-in's latched flash: the shift bars and arcs flash with it at 5 Hz (shift_cue.js)
         if (!flashing && this._countIn() && this.cue.now.shift) this.flash = this.cue.blink(now);
-        this.widgets.forEach((x) => { if (x.w.type !== 'e36needles') this._guard('widget ' + x.w.id, () => this._update(x, now, false)); });
-    }
-
-    /** The E36's needles, at the display's rate (NEEDLE_MS); nothing to do in the other themes. */
-    _needleTick() {
-        if (!this.client.ready) return;
-        const now = Date.now();
-        this.widgets.forEach((x) => { if (x.w.type === 'e36needles') this._guard('widget ' + x.w.id, () => this._update(x, now, false)); });
+        this.widgets.forEach((x) => this._guard('widget ' + x.w.id, () => this._update(x, now, false)));
     }
 
     /** The engine speed as it comes: the shift test's sweep while it runs, else the car's own (rpm, unfiltered). */
@@ -2696,6 +2714,7 @@ class HudApp {
                 color2: w.color2 && role !== 'hot' ? color(this.theme, w.color2) : null,
                 glow: w.glow ? this.theme.glow : 0,
             });
+            if (w.lead && s) this._leadIcon(buf, w, s, font, color(this.theme, role));
             this._blitDiff(x, buf);
         } else if (w.type === 'badge') {
             if (!force && now - x.lastPaint < TEXT_MS) return;
@@ -2833,15 +2852,19 @@ class HudApp {
         } else if (w.type === 'e36needles') {
             // the needles: each dial's value read off its traced scale ([value, angle] pairs); no data parks it on its pin.
             // Each follows its angle with inertia (e36.Needle), the rev needle from the unfiltered rpm: the follower is
-            // its only smoothing
+            // its only smoothing. Sent as paths in the renderer's clock (see NEEDLE_W): t0 from when the layer showed
             const sp = this._raw('speed'), R = this._e36Revs(w);
             const val = (sig) => (sig === 'speed' ? (isNum(sp) && w.mph ? sp * 0.621371 : sp) : sig === 'rpm' ? this._rpmIn(now) : this._raw(sig));
-            if (!x.ndl) x.ndl = [0, 1, 2, 3].map(() => new e36.Needle(NEEDLE_W));
-            const ang = [0, 1, 2, 3].map((i) => {
+            const tm = mono();
+            if (!isNum(x.t0)) x.t0 = tm;
+            const ts = (tm - x.t0) / 1000;
+            if (!x.ndl) { x.ndl = [0, 1, 2, 3].map(() => new e36.Needle(NEEDLE_W)); x.path = null; }
+            const paths = [0, 1, 2, 3].map((i) => {
                 const d = (w.dials || [])[i];
-                if (!d) return 0;
-                const a = e36.frac(val(d.signal), i === R.dial && R.map ? R.map : d.map);
-                return Math.round(x.ndl[i].step(a === null ? d.rest : a, now) * 10) / 10;
+                const a = d ? e36.frac(val(d.signal), i === R.dial && R.map ? R.map : d.map) : 0;
+                const to = d ? (a === null ? d.rest : a) : 0;
+                x.ndl[i].step(to, now);
+                return e36.nextPath(x.path && x.path[i], ts, PATH_KEEP, PATH_AHEAD, x.ndl[i].ahead(to, (PATH_KEEP + PATH_AHEAD) * 1000));
             });
             // the economy needle: the M3's oil temperature (its scale in F on the mph face), or the economy estimated
             // from the engine's power (shared/e36.js): the car has no fuel-flow signal
@@ -2860,10 +2883,14 @@ class HudApp {
                 const a = e36.frac(x.econ.step(raw, now), E.map);
                 ea = Math.round((a === null ? E.rest : a) * 10) / 10;
             }
-            const key = ang.join('|') + '|' + ea;
+            // still needles send nothing: the same angles (a path's times move on, its angles don't)
+            const key = paths.map((P) => P.a.map((v) => v.toFixed(2)).join(',')).join('|') + '|' + ea;
             if (!force && key === x.last) return;
             x.last = key;
-            x.c.uniform(x.ref, 'u_ang', ang);
+            x.path = paths;
+            // u_path: per needle its keys' times (the first wrapped as u_time is, 0 .. 3600) and their angles
+            x.c.uniform(x.ref, 'u_path', [].concat.apply([], paths.map((P) => [P.t[0] % 3600, P.t[1], P.t[2], P.t[3]].map((v) => Math.round(v * 1e4) / 1e4)
+                .concat(P.a.map((v) => Math.round(v * 100) / 100)))), { type: 'vec4' });
             if (E) x.c.uniform(x.ref, 'u_econB', [ea, E.width]);
         } else if (w.type === 'vdash') {
             const T = w.tach, q = (v) => Math.round(Math.min(1, Math.max(0, v)) * 400) / 400;

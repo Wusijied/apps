@@ -4,6 +4,9 @@ Newest first. Dates are when the build was pushed.
 
 ## Nov 17 2026
 
+- **Cluster Themes 0.20.3:** E36:
+  - The needles move smoothly on the car: the cluster now moves them itself on every frame of the display, along a short path the app sends. Before, the cluster took each new position only 30 times a second and out of step with the display, so the needles moved in uneven steps however often the app sent them.
+  - BMW's own range is hidden behind the strips; the LCD's range now has an arrow into the fuel pump in front of it, as on the E90.
 - **Cluster Themes 0.20.2:** E36:
   - The warning-light strips are back along the bottom, with BMW's own range, drive mode, gear letter and electric range showing through them. The rest of BMW's bottom row (its clock, messages and outside temperature) is hidden behind the strips.
   - The LCD has its second row again: the clock and the outside temperature.
