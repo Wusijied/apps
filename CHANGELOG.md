@@ -2,6 +2,10 @@
 
 Newest first. Dates are when the build was pushed.
 
+## Nov 17 2026
+
+- **Cluster Themes 0.20.1:** the E36's face round the dials is 30 % darker, by day and at night, so it reads less grey. This build also carries the install fix and the depth pass listed under 0.20.0.
+
 ## Nov 16 2026
 
 - **Cluster Themes 0.20.0:**
