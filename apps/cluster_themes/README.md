@@ -77,11 +77,13 @@ A race-sim style dash with angled frames and a music panel.
 The BMW E36 328i cluster of the 90s, as it was: traced off photos of the real thing at its true proportions, as big as the screen allows.
 
 - **The dials:** fuel, speed, revs and coolant, white print on black with cream needles, the red zone from 6000 rpm, the blue and red coolant marks and the reserve block on the fuel gauge.
-- **Two faces, by your Units setting:** with km/h, the European face (20 to 240 km/h, fuel use in L/100km); with mph, the US face (MPH with the small km/h ring inside, MPG, "UNLEADED GASOLINE ONLY").
+- **Two faces, by your Units setting:** with km/h, the European face (20 to 240 km/h, fuel use in L/100km); with mph, the US face (MPH with the small km/h ring inside, MPG).
+- **The M3 face, by your Redline setting:** at 7000 or 7500 rpm (the 0 to 8 rev counter) the cluster becomes the E36 M3's: red needles, a faster speedometer (20 to 280 km/h, or 10 to 170 MPH with the km/h ring to 280), the /M badge between the dials, and an oil temperature gauge (50 to 150 °C, or 120 to 300 °F) where the 328i has its fuel-use gauge.
 - **The fuel-use gauge** under the rev counter: the car doesn't report fuel flow, so the needle is worked out from the engine's power and your speed. Standing still it reads the thirsty end, as the real one did.
-- **The LCD** under the speedometer: the range where the E36 showed its odometer (the car doesn't share its mileage), the trip since you started the car, and on the second row the clock and the outside temperature.
+- **The LCD** under the speedometer, one row as on the car: the range where the E36 showed its odometer (the car doesn't share its mileage) and the trip since you started the car.
 - **After sunset** the print, needles and LCD glow orange-red, the E36's own night lighting (Night colours on Auto).
-- **Left as they were:** the warning-light strips, turn arrows and lamp window stay dark (the app can't read those lamps), and BMW's own gear letter shows through the right strip. No shift lights, readouts, map or badge: the E36 had none.
+- **BMW's own bottom row** shows under the face where the E36 had its warning-light strips: the car's range, clock, gear letter and outside temperature.
+- **Left as they were:** the turn arrows and lamp window stay dark (the app can't read those lamps). No shift lights, readouts, map or badge: the E36 had none.
 
 <p align="center"><img src="../../docs/images/cluster-e36.png" width="900" alt="E36 theme, US face"></p>
 <p align="center"><img src="../../docs/images/cluster-e36-eu.png" width="900" alt="E36 theme, European face"></p>

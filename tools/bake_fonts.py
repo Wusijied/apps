@@ -44,7 +44,7 @@ HUD_FONTS = [
     ('np_small', 'Barlow-Medium.ttf', 16, ''.join(chr(i) for i in range(32, 127))),
 ]
 # Cluster Themes, 1920x720 LCD. GT3: the race-dash look, Barlow Condensed.
-E36_SCALE = 1.3401     # = gen_e36.py place()'s scale / 0.9 (1.2061 / 0.9)
+E36_SCALE = 1.3275     # = gen_e36.py place()'s scale / 0.9 (1.1947 / 0.9)
 E36 = lambda px: round(px * E36_SCALE)
 CLUSTER_FONTS = [
     ('gear', 'BarlowCondensed-Bold.ttf', 330, DIGITS + 'PRND-'),
@@ -107,7 +107,6 @@ CLUSTER_FONTS = [
     ('e_lab', 'BarlowCondensed-SemiBold.ttf', E36(20), UPPER + LOWER + DIGITS + '/ '),
     ('e_frac', 'BarlowCondensed-SemiBold.ttf', E36(34), '½⅟', 0, None, {'⅟': [('1', 0.55, -0.325), ('⁄', 1.0, 0.0), ('1', 0.55, 0.0)]}),
     ('e_us', 'BarlowCondensed-SemiBold.ttf', E36(26), DIGITS),                   # US face: the MPG figures
-    ('e_word', 'BarlowSemiCondensed-Medium.ttf', E36(23), UPPER + ' '),          # US face: UNLEADED GASOLINE, ONLY
     ('e_sm', 'BarlowCondensed-SemiBold.ttf', E36(15), UPPER + LOWER + DIGITS + '/° '),
     ('e_xs', 'BarlowCondensed-SemiBold.ttf', E36(10), UPPER),
     ('e_lcd', 'DSEG7Classic-Bold.ttf', E36(22), DIGITS + '.-: '),                # the LCD: odometer field, trip

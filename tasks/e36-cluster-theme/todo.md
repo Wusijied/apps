@@ -248,3 +248,67 @@ Built on branch `e36-cluster-theme` (Cluster Themes 0.20.0), inline execution; l
   strip row drawn by the same shader, existing trip counter reused, fonts named per use).
 - **Not verified:** anything on the car (GPU timing of `e36dash`, whether BMW's gear box stays away with the right
   strip drawn round its letter).
+
+## Follow-up (Nov 17 2026): bottom row, economy window, figures
+
+- [x] One cutout: the face ends at y 660 and BMW's whole bottom row shows (range, clock, gear letter, outside temp);
+  the strip pieces and the shader's lamp strips are gone. The LCD keeps one row (range, unit, trip) as on the car.
+- [x] Rev counter cut flat at 974 (photo px, was 985), just under the economy ticks, as both photos show.
+- [x] Economy window: level top with both corners cut off (ECON_CHAM, measured on both photos), ticks drawn end to
+  end as printed (the right-hand ones lean; they used to be forced radial round the needle pivot and shrank to dots).
+- [x] Figures (speedometer, inner km/h ring, rev counter) placed on their tick's angle, ink 7 px from the nearest tick
+  (true ink widths: tabular digits); the US MPH figures stay between the two rings (centred where the band is tight).
+- [x] `node tools/test_e36.js` passes (bottom row open, LCD distances only); bench screenshots of both faces.
+- [x] EU economy ticks rebuilt from geometry (Nov 17 2026): the hand-traced endpoints were off (20 .. 28 crossed the
+  printed ticks, the left ones short). Fitted to the photo's tick pixels: all radial about one centre, evenly spaced,
+  inner ends on one circle, outer ends on another and level at the bottom (`eu_econ_ticks()`); overlay on
+  `eu-kmh-day-face.png` matches, `node tools/test_e36.js` passes, bench shot checked. US ticks overlaid: already right.
+
+## Follow-up (Nov 17 2026): M3 face for the 7000 / 7500 redlines
+
+Plan: ~/.claude/plans/hazy-wondering-planet.md. Photos: `design/photos/e36/m3-us-mph-day-face.png`,
+`m3-kmh-jpn-day-face.png`.
+
+- [x] `&` in toggles (hud.js `_toggleOn`, layouts.js validation); four faces: EU / US 328i (`!redline=7000|7500`), EU / US
+  M3 (`redline=7000|7500`)
+- [x] M3 speedometers traced from pixels: km/h 20..280 (27 ticks round one centre, linear to 1.5 degrees); MPH 10..170 with
+  the inner km/h ring 20..280 (the US photo is shot from the left: its rings' ellipse mapped to a circle first; both rings
+  give the same scale). Overlaid on both photos.
+- [x] Oil temperature gauge in the economy window (50..150 °C / 120..300 °F, same ticks): 11 ticks fitted (one centre,
+  11.1 degrees a step to 0.2, inner ends on one circle to 0.3 px, outer ends on the rim and the floor), `e36oil` icon,
+  `signal: 'oil'` (hud.js converts to F on the mph face), the needle on its pin under 50 °C
+- [x] Red needles (`needleColor: 'mneedle'`, day and night)
+- [x] /M badge (`e36m`, a multi-colour icon, icons.js LOGOS) in the small window
+- [x] Trip knob and light sensor gone from every face (gen, shader, hud.js uniforms)
+- [x] Tests, shader budget, bench screenshots, build
+
+### Review (Nov 17 2026)
+
+- **Verified:** `node tools/test_e36.js` (27 pass, new: four faces by units and redline, M3 scales / oil map / badge,
+  `&` toggles, no knob or sensor); overlays of the generated M3 faces on both M3 photos (km/h face and oil gauge on the
+  printed ticks; MPH face within the photo's own distortion); `node tools/shader_budget.js --all` (no crash mark; e36dash
+  loop load 5231, was 6049: the knob and sensor are gone, the tick loop is 10); bench shots EU / US x redline 6500 / 7000,
+  day and night; `kit/tools/build.py cluster_themes` builds; previews regenerated (the E36 one at the bench's 6500: 328i).
+- **Deviations:** the tick arrays grew from 9 to 10 (the MPH M3 face has four speedometer tick groups). The M3 rev
+  counter is still rev_face()'s 0 .. 8, not re-traced against the M3 photos. The JPN photo's fuel gauge (0..60 L) is not
+  used: the EU M3 face keeps 0, 1/2, 1/1.
+- **Not verified:** anything on the car.
+
+## Follow-up (Nov 17 2026): needles on top, symmetric EU economy window
+
+- [x] Needles over everything: new `e36needles` layer (shaders.js, hud.js, layouts.js), z 6, see-through, drawing the four
+  dials' needles, counterweights and hubs and the economy / oil needle (inside its window, under the rev needle).
+  `e36dash` and `e36econ` no longer draw needles; their needle data moved to the new widget (gen_e36.py `build()`).
+- [x] EU economy gauge symmetric: centred under the rev counter (the EU photo, shot at an angle, put it 21 px left and
+  1 degree off; the face-on US photo and tach-econ-closeup.png have it centred), ticks mirrored, the print mirrored, the
+  window's corners over the 5 and 25 L/100km marks (`eu_econ_cham()`), slope 0.46 both sides; the 0 and 30 figures 108 px
+  out at 900, under the slopes. The US window is unchanged.
+
+### Review (Nov 17 2026)
+
+- **Verified:** `node tools/test_e36.js` (29 pass; new: needles on top of every other widget of their face, within
+  their layer, none drawn by the face or the economy layer; the EU economy gauge mirrors about the rev counter);
+  `node tools/shader_budget.js --all` (no crash mark; E36 loop load 4785 + 141 + 869 = 5795, was 5231 + ~150; under
+  Sport's 6017); bench shots EU, US, EU M3 (needles over "140", "4", "1/min", the icons and the economy figures; red on
+  the M3); 7 layers on one connection; `kit/tools/build.py cluster_themes` builds; the E36 preview regenerated alone.
+- **Not verified:** anything on the car (the extra full-width see-through layer's GPU cost).

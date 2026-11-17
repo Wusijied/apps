@@ -139,7 +139,7 @@ const THEMES = {
         green: [80, 255, 120, 255], ghost: [255, 170, 40, 40],
     },
     // E36 (layouts e36.json, widget e36dash): the 328i cluster of the 90s, white print on black dials in a dark grey face,
-    // cream needles. Colours from the EU and US day photos (design/photos/e36), cleaned of the glass's glare. "night"
+    // cream needles (red on the M3 face: "mneedle"). Colours from the EU and US day photos (design/photos/e36), cleaned of the glass's glare. "night"
     // replaces these roles after sunset (nightTheme, instead of the 60 % dim): all the print, ticks, needles and LCD turn to
     // the E36's orange-red lighting from the night photos. noGarland: no holiday light string over it (a pure E36).
     e36: {
@@ -154,6 +154,7 @@ const THEMES = {
         needle: [238, 232, 214, 255], hub: [88, 88, 90, 255], red: [235, 52, 30, 255], blue: [62, 150, 226, 255],
         orange: [242, 112, 34, 255], arrow: [30, 46, 38, 255], well: [12, 12, 14, 255], lcd: [255, 96, 42, 255],
         strip: [26, 26, 28, 255],
+        mneedle: [236, 70, 58, 255],     // the M3 face's red needles (m3-kmh-jpn-day-face.png, cleaned of glare)
         noGarland: true,
         night: {     // from the night photos (us-mph-night-closeup.png): orange-red print, paler salmon needles, the face still grey
             fg: [248, 100, 80, 255], dim: [248, 100, 80, 255], arc: [248, 100, 80, 255], head: [248, 100, 80, 255],
@@ -162,6 +163,7 @@ const THEMES = {
             needle: [236, 150, 134, 255], hub: [60, 60, 64, 255], red: [222, 58, 44, 255], blue: [24, 110, 140, 255],
             orange: [235, 92, 28, 255], arrow: [18, 26, 21, 255], well: [8, 8, 10, 255], lcd: [255, 110, 60, 255],
             strip: [20, 20, 23, 255],
+            mneedle: [230, 72, 54, 255],     // still red at night (m3-night-reference.png)
         },
     },
     // Cruise (layouts cruise.json): calm and quiet for the highway, soft white and a cool teal, no reds until needed.
