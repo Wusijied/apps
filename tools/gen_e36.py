@@ -60,6 +60,15 @@ def font(name):
     return _fonts[name]
 
 
+def digit_ink(fname):
+    """The rows of a font's digit ink in its cell (an 8, from the baked atlas): (top, bottom + 1), px from the cell's top."""
+    import base64
+    f = font(fname)
+    a, W8, g = base64.b64decode(f['alpha']), f['width'], f['glyphs']['8']
+    rows = [y for y in range(g['h']) if any(a[(g['y'] + y) * W8 + g['x'] + x] > 100 for x in range(g['w']))]
+    return rows[0], rows[-1] + 1
+
+
 GAP = 7          # target px between a dial's figure (its ink) and the nearest tick
 
 
@@ -654,10 +663,10 @@ def build(face, wid, toggle):
                 'text': text, 'font': fname, 'color': color, 'align': align, 'toggle': toggle}
     r1, r2 = 18, 50
     # the range marked as the E90's LCD marks it: an arrow into the fuel pump just before the figure, wherever its
-    # digits start (hud.js text "lead"), centred on the digits' height
-    fl = font('e_lcd')
+    # digits start (hud.js text "lead"), the pump as tall as the digits' ink and level with it
+    top, bot = digit_ink('e_lcd')
     rng = lcd('range', '{{range}}', 'e_lcd', 4, 122, r1, 'right')
-    rng['lead'] = {'icon': 'e36range', 'size': 32, 'gap': 4, 'cy': round(fl['baseline'] - 0.35 * fl['size'], 1)}
+    rng['lead'] = {'icon': 'e36range', 'w': round((bot - top) * 1.4), 'h': bot - top, 'gap': 3, 'cy': (top + bot) / 2}
     lcds = [
         rng,
         lcd('unit', unit, 'e_sm', 126, 172, r1 + 2, 'left'),

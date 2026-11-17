@@ -4,6 +4,7 @@ Newest first. Dates are when the build was pushed.
 
 ## Nov 17 2026
 
+- **Cluster Themes 0.20.4:** E36: the range's fuel pump icon on the LCD is as tall as the figures.
 - **Cluster Themes 0.20.3:** E36:
   - The needles move smoothly on the car: the cluster now moves them itself on every frame of the display, along a short path the app sends. Before, the cluster took each new position only 30 times a second and out of step with the display, so the needles moved in uneven steps however often the app sent them.
   - BMW's own range is hidden behind the strips; the LCD's range now has an arrow into the fuel pump in front of it, as on the E90.

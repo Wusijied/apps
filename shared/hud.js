@@ -46,9 +46,9 @@
  * rebuild cluster-render's own status text is asked for and logged.
  *
  * Widget types (hud/layouts/*.json, or <data>/layouts/ overrides, see layouts.js):
- *   text      image layer; template tokens below, a font from hud/fonts, colour role; "lead": { icon, size, gap, cy } an
+ *   text      image layer; template tokens below, a font from hud/fonts, colour role; "lead": { icon, w, h, gap, cy } an
  *             icon (icons.js) in the text's colour just before its first character, wherever the alignment puts it
- *             (size px square, gap px to the text, its centre cy px from the box's top; the E36 LCD's range)
+ *             (w x h px, gap px to the text, its centre cy px from the box's top; the E36 LCD's range)
  *   scale     image layer; the shift bar's rpm numbers (0 .. bar max / 1000), evenly spread
  *   stripe    image layer; the M tricolour stripe
  *   shiftbar  effect layer; shaders.js shiftbar, lit by rpm, zones from the redline
@@ -1091,15 +1091,15 @@ class HudApp {
 
     /** A text widget's "lead" icon, painted into its picture just before the text (see the header). */
     _leadIcon(buf, w, s, font, col) {
-        const L = w.lead, sz = Math.round(L.size), tw = textRaster.measure(s, font, w.spacing);
+        const L = w.lead, iw = Math.round(L.w), ih = Math.round(L.h), tw = textRaster.measure(s, font, w.spacing);
         const x0 = w.align === 'right' ? w.w - tw : w.align === 'center' ? Math.round((w.w - tw) / 2) : 0;
-        const ix = Math.round(x0 - (L.gap || 0) - sz), iy = Math.round((isNum(L.cy) ? L.cy : w.h / 2) - sz / 2);
-        const ic = paintIcon(L.icon, sz, sz, col);
-        for (let y = 0; y < sz; y++) {
+        const ix = Math.round(x0 - (L.gap || 0) - iw), iy = Math.round((isNum(L.cy) ? L.cy : w.h / 2) - ih / 2);
+        const ic = paintIcon(L.icon, iw, ih, col);
+        for (let y = 0; y < ih; y++) {
             const dy = iy + y;
             if (dy < 0 || dy >= w.h) continue;
-            for (let xx = 0; xx < sz; xx++) {
-                const dx = ix + xx, o = (y * sz + xx) * 4, d = (dy * w.w + dx) * 4;
+            for (let xx = 0; xx < iw; xx++) {
+                const dx = ix + xx, o = (y * iw + xx) * 4, d = (dy * w.w + dx) * 4;
                 if (dx < 0 || dx >= w.w || ic[o + 3] <= buf[d + 3]) continue;
                 ic.copy(buf, d, o, o + 4);
             }

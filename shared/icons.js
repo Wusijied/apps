@@ -66,9 +66,10 @@ const ICONS = {
         seg(x, y, 0.2, 0.725, 0.62, 0.725) - 0.038, seg(x, y, 0.6, 0.73, 0.9, 0.625) - 0.045,
         seg(x, y, 0.76, 0.76, 0.64, 0.89) - 0.04, seg(x, y, 0.21, 0.9, 0.66, 0.9) - 0.04, seg(x, y, 0.21, 0.72, 0.21, 0.9) - 0.04,
         disc(x, y, 0.94, 0.865, 0.045), seg(x, y, 0.94, 0.79, 0.94, 0.86) - 0.02),
-    // the arrow on the left, the pump (fuel's, 0.62 of the box) on the right, its lines a little bolder for the size
-    e36range: (x, y) => Math.min(seg(x, y, 0.03, 0.5, 0.33, 0.5) - 0.035, seg(x, y, 0.33, 0.5, 0.22, 0.39) - 0.035,
-        seg(x, y, 0.33, 0.5, 0.22, 0.61) - 0.035, ICONS.fuel((x - 0.38) / 0.62, (y - 0.19) / 0.62) * 0.62 - 0.008),
+    // drawn 1.4 wide to 1 high (x -0.2 .. 1.2 in its box): the arrow on the left, fuel's pump the box's full height
+    // on the right (its ink, unit x 0.08 .. 0.8 and y 0.22 .. 0.94, scaled to x 0.2 .. 1.2, y 0 .. 1)
+    e36range: (x, y) => Math.min(seg(x, y, -0.15, 0.5, 0.1, 0.5) - 0.055, seg(x, y, 0.1, 0.5, -0.02, 0.38) - 0.055,
+        seg(x, y, 0.1, 0.5, -0.02, 0.62) - 0.055, ICONS.fuel(0.08 + (x - 0.2) * 0.72, 0.22 + y * 0.72) / 0.72),
     oilcan: (x, y) => Math.min(seg(x, y, 0.2, 0.62, 0.6, 0.62) - 0.12, seg(x, y, 0.6, 0.58, 0.9, 0.44) - 0.04, disc(x, y, 0.92, 0.66, 0.05), seg(x, y, 0.3, 0.46, 0.3, 0.34) - 0.035, seg(x, y, 0.22, 0.34, 0.38, 0.34) - 0.04),
 };
 

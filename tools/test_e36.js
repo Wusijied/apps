@@ -291,8 +291,9 @@ test('layout: the LCD: the range and the trip, under them the clock and the outs
         assert.ok(time.y > rng.y + rng.h / 2 && out.y === time.y, t + ': the second row under the first');
         // the icon just before the figure's first digit (hud.js text "lead"), room for it and four digits
         assert.ok(rng.lead && rng.lead.icon === 'e36range' && rng.align === 'right', t + ': the range\'s icon leads its figure');
-        assert.ok(rng.w >= 4 * 24 + rng.lead.size + rng.lead.gap, t + ': room for the icon and four digits');
-        assert.ok(rng.lead.cy > rng.lead.size / 2 - 4 && rng.lead.cy < rng.h, t + ': on the digits\' row');
+        assert.ok(rng.w >= 4 * 24 + rng.lead.w + rng.lead.gap, t + ': room for the icon and four digits');
+        // as tall as the digits' ink (the e_lcd 8: rows 2 .. 31 of its 34 px cell) and level with it, inside the box
+        assert.ok(rng.lead.h === 30 && rng.lead.cy === 17 && rng.lead.cy - rng.lead.h / 2 >= 0 && rng.lead.cy + rng.lead.h / 2 <= rng.h, t + ': ' + JSON.stringify(rng.lead));
     });
 });
 test('layout: each face has its e36dash, on its own units and redlines (the M3 on the 0 .. 8 rev counter)', () => {

@@ -2063,9 +2063,10 @@
       "toggle": "units=metric&!redline=7000|7500",
       "lead": {
         "icon": "e36range",
-        "size": 32,
-        "gap": 4,
-        "cy": 21.9
+        "w": 42,
+        "h": 30,
+        "gap": 3,
+        "cy": 17.0
       }
     },
     {
@@ -4713,9 +4714,10 @@
       "toggle": "units=us&!redline=7000|7500",
       "lead": {
         "icon": "e36range",
-        "size": 32,
-        "gap": 4,
-        "cy": 21.9
+        "w": 42,
+        "h": 30,
+        "gap": 3,
+        "cy": 17.0
       }
     },
     {
@@ -6975,9 +6977,10 @@
       "toggle": "units=metric&redline=7000|7500",
       "lead": {
         "icon": "e36range",
-        "size": 32,
-        "gap": 4,
-        "cy": 21.9
+        "w": 42,
+        "h": 30,
+        "gap": 3,
+        "cy": 17.0
       }
     },
     {
@@ -9441,9 +9444,10 @@
       "toggle": "units=us&redline=7000|7500",
       "lead": {
         "icon": "e36range",
-        "size": 32,
-        "gap": 4,
-        "cy": 21.9
+        "w": 42,
+        "h": 30,
+        "gap": 3,
+        "cy": 17.0
       }
     },
     {
