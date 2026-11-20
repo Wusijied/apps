@@ -242,6 +242,7 @@ const THEMES = {
         gold: [230, 187, 94, 255], goldShade: [137, 94, 36, 255],
         dialFace: [13, 13, 16, 255], rosso: [212, 24, 45, 255],
         dialInk: [72, 47, 21, 255], tickMark: [121, 82, 35, 255], dialPanel: [8, 9, 12, 255],
+        dialOverlay: [12, 14, 18, 210], dialOverlayLine: [154, 160, 170, 185],
         needle: [212, 24, 45, 255], hub: [238, 214, 166, 255], bezel: [76, 52, 23, 255],
     },
     ribbon_xmas: {

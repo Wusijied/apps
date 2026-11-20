@@ -2567,6 +2567,10 @@ class HudApp {
             c.uniform(ref, 'u_headH', [w.head || 0]);
             c.uniform(ref, 'u_border', [w.border === undefined ? 2 : w.border]);
             c.uniform(ref, 'u_radius', [w.radius || 0]);
+            const clip = w.clipCircle;
+            c.uniform(ref, 'u_clipCircle', clip ? [clip.center[0], clip.center[1], clip.radius] : [0, 0, 0]);
+            const cut = w.cutCircle;
+            c.uniform(ref, 'u_cutCircle', cut ? [cut.center[0], cut.center[1], cut.radius] : [0, 0, 0]);
         } else if (w.type === 'swatch') {
             c.uniform(ref, 'u_size', [w.w, w.h]);
             c.uniform(ref, 'u_n', [w.steps || 11]);

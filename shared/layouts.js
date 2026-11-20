@@ -122,6 +122,16 @@ class Layouts {
             const part = '!?[a-zA-Z0-9_]+(=[a-zA-Z0-9_]+(\\|[a-zA-Z0-9_]+)*)?';     // "a&b": both parts
             if (w.toggle !== undefined && !new RegExp('^' + part + '(&' + part + ')*$').test(String(w.toggle))) bad(at + ' has a bad toggle "' + w.toggle + '"');
             if (w.hole !== undefined && !(Array.isArray(w.hole) && w.hole.length === 4 && w.hole.every((n) => typeof n === 'number'))) bad(at + ' "hole" must be [x, y, w, h]');
+            if (w.clipCircle !== undefined && (w.type !== 'box' || !w.clipCircle || !Array.isArray(w.clipCircle.center) || w.clipCircle.center.length !== 2
+                || !w.clipCircle.center.every((n) => typeof n === 'number' && isFinite(n))
+                || typeof w.clipCircle.radius !== 'number' || !isFinite(w.clipCircle.radius) || w.clipCircle.radius <= 0)) {
+                bad(at + ' "clipCircle" must be { center: [x, y], radius: positive } on a box');
+            }
+            if (w.cutCircle !== undefined && (w.type !== 'box' || !w.cutCircle || !Array.isArray(w.cutCircle.center) || w.cutCircle.center.length !== 2
+                || !w.cutCircle.center.every((n) => typeof n === 'number' && isFinite(n))
+                || typeof w.cutCircle.radius !== 'number' || !isFinite(w.cutCircle.radius) || w.cutCircle.radius <= 0)) {
+                bad(at + ' "cutCircle" must be { center: [x, y], radius: positive } on a box');
+            }
             TYPES[w.type].forEach((k) => { if (w[k] === undefined) bad(at + ' (' + w.type + ') needs "' + k + '"'); });
         });
     }

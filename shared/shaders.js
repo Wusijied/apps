@@ -305,7 +305,9 @@ void main() {
 
 const BOX = `// Framed box for a cluster-render "effect" layer (GLSL ES 1.00), the race-dash readout box: a rounded
 // frame u_border px wide in u_line, filled u_fill, with a header strip u_headH px tall in u_head across the
-// top (0 = none). Colours rgba, straight alpha. u_size, u_border, u_headH, u_radius in px.
+// top (0 = none). Optional u_clipCircle clips to a circle; u_cutCircle cuts one out [x, y, radius].
+// Colours rgba, straight alpha.
+// u_size, u_border, u_headH, u_radius in px.
 precision mediump float;
 varying vec2 v_uv;
 uniform vec2 u_size;
@@ -315,17 +317,31 @@ uniform vec4 u_head;
 uniform float u_headH;
 uniform float u_border;
 uniform float u_radius;
+uniform vec3 u_clipCircle;
+uniform vec3 u_cutCircle;
 
 void main() {
     vec2 p = vec2(v_uv.x * u_size.x, v_uv.y * u_size.y);
     vec2 hs = u_size * 0.5;
     vec2 q = abs(p - hs) - (hs - vec2(u_radius));
     float d = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - u_radius;   // < 0 inside
-    float outer = clamp(0.5 - d, 0.0, 1.0);
+    float circle = u_clipCircle.z > 0.0
+        ? 1.0 - smoothstep(u_clipCircle.z - 1.0, u_clipCircle.z + 1.0, length(p - u_clipCircle.xy))
+        : 1.0;
+    float cutCircle = u_cutCircle.z > 0.0
+        ? smoothstep(u_cutCircle.z - 1.0, u_cutCircle.z + 1.0, length(p - u_cutCircle.xy))
+        : 1.0;
+    float outer = clamp(0.5 - d, 0.0, 1.0) * circle * cutCircle;
     if (outer <= 0.0) { gl_FragColor = vec4(0.0); return; }
     vec4 c = p.y < u_headH ? u_head : u_fill;
     float edge = clamp(d + u_border + 0.5, 0.0, 1.0);                       // 1 within the frame
-    vec4 col = mix(c, u_line, edge);
+    float circleEdge = u_clipCircle.z > 0.0
+        ? 1.0 - smoothstep(1.0, 2.0, abs(length(p - u_clipCircle.xy) - u_clipCircle.z))
+        : 0.0;
+    float cutCircleEdge = u_cutCircle.z > 0.0
+        ? 1.0 - smoothstep(1.0, 2.0, abs(length(p - u_cutCircle.xy) - u_cutCircle.z))
+        : 0.0;
+    vec4 col = mix(c, u_line, max(edge, max(circleEdge, cutCircleEdge)));
     gl_FragColor = vec4(col.rgb, col.a * outer);
 }
 `;
@@ -2095,27 +2111,37 @@ void main() {
     float angle = atan(d.x, -d.y);
     float rel = mod(angle - u_start + tau, tau);
     float inScale = 1.0 - step(u_sweep + 0.0001, rel);
-    float divisions = max(u_max * 4.0, 1.0);
+    float divisions = max(u_max * 10.0, 1.0);
     float index = floor(rel / max(u_sweep / divisions, 0.0001) + 0.5);
     float tickAngle = u_start + index * u_sweep / divisions;
     vec2 direction = vec2(sin(tickAngle), -cos(tickAngle));
     float along = dot(d, direction);
     float side = abs(d.x * direction.y - d.y * direction.x);
-    float major = 1.0 - step(0.5, mod(index, 4.0));
-    float tickStart = u_outer - mix(12.0, 27.0, major);
+    float major = 1.0 - step(0.5, mod(index, 10.0));
+    float midTick = 1.0 - step(0.5, mod(index, 5.0));
+    float tickStart = u_outer - mix(18.0, mix(24.0, 31.0, major), midTick);
     float tickEnd = u_outer - 7.0;
     float tick = aa(side - 1.0)
         * smoothstep(tickStart - 1.0, tickStart + 1.0, along)
         * (1.0 - smoothstep(tickEnd - 1.0, tickEnd + 1.0, along))
         * inScale;
-    float redTick = step(u_redline * 4.0, index);
-    vec3 tickColor = mix(u_mark, u_ink, major * 0.6);
+    float redTick = step(u_redline * 10.0, index);
+    vec3 tickColor = mix(u_mark, u_ink, major * 0.6 + midTick * 0.25);
     tickColor = mix(tickColor, u_red, redTick);
+
+    float redlineStep = u_sweep / divisions;
+    float redlineLocal = mod(rel, redlineStep);
+    float redlineEdge = min(redlineLocal, redlineStep - redlineLocal);
+    float redline = step(u_sweep * u_redline / max(u_max, 0.001), rel) * inScale
+        * aa(abs(r - (u_outer - 12.0)) - 5.0)
+        * smoothstep(0.002, 0.005, redlineEdge);
+    c = mix(c, u_red, redline);
+
+    float scaleArc = aa(abs(r - (u_outer - 18.0)) - 0.5) * inScale;
+    c = mix(c, u_ink, scaleArc);
+
     c = mix(c, tickColor, tick);
 
-    float redline = step(u_sweep * u_redline / max(u_max, 0.001), rel) * inScale
-        * aa(abs(r - (u_outer - 18.0)) - 2.0);
-    c = mix(c, u_red, redline);
     gl_FragColor = vec4(c, outer);
 }
 `;
