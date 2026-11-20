@@ -233,13 +233,16 @@ const THEMES = {
     // Roma: an original grand touring palette, with warm ivory, champagne gold and Rosso Corsa accents.
     roma: {
         name: 'Roma',
-        fg: [245, 242, 235, 255], dim: [151, 145, 137, 255], track: [70, 61, 54, 255], arc: [204, 170, 113, 255],
+        fg: [245, 242, 235, 255], dim: [151, 145, 137, 255], track: [104, 76, 35, 255], arc: [230, 187, 94, 255],
         glow: 0, stripe: false,
-        bar: { low: [204, 170, 113], mid: [204, 170, 113], high: [212, 24, 45], midAt: 'shift' },
-        rev: { from: [204, 170, 113], to: [204, 170, 113] },
-        bg: [0, 0, 0, 255], panel: [0, 0, 0, 255], line: [105, 88, 67, 255], head: [224, 199, 157, 255],
+        bar: { low: [230, 187, 94], mid: [230, 187, 94], high: [212, 24, 45], midAt: 'shift' },
+        rev: { from: [230, 187, 94], to: [230, 187, 94] },
+        bg: [0, 0, 0, 255], panel: [0, 0, 0, 255], line: [105, 82, 46, 255], head: [224, 199, 157, 255],
         ink: [12, 12, 14, 255], accent: [212, 24, 45, 255], well: [0, 0, 0, 255],
-        gold: [204, 170, 113, 255], rosso: [212, 24, 45, 255],
+        gold: [230, 187, 94, 255], goldShade: [137, 94, 36, 255],
+        dialFace: [13, 13, 16, 255], rosso: [212, 24, 45, 255],
+        dialInk: [72, 47, 21, 255], tickMark: [121, 82, 35, 255], dialPanel: [8, 9, 12, 255],
+        needle: [212, 24, 45, 255], hub: [238, 214, 166, 255], bezel: [76, 52, 23, 255],
     },
     ribbon_xmas: {
         name: 'Ribbon · Christmas',

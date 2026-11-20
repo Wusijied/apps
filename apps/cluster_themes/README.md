@@ -151,9 +151,9 @@ Inspired by the supplied reference, with Runway's layout for the other readouts:
 
 ### Roma
 
-An original Ferrari Roma-inspired grand touring layout, not a reproduction of the car's OEM display. Warm ivory figures and champagne-gold accents sit on black, with a Rosso Corsa rev arc, a fuel arc, and the speed, gear and drive mode in the centre. Oil, water and boost are shown below.
+An original grand-touring layout, not a reproduction of any OEM display. A fixed gold circular tachometer has a dark hub, a static 0–7 scale and redline marks; its red RPM needle sweeps to 7000 rpm. The left panel shows water, oil, boost and fuel readings with bars. Framed speed and gear cards sit over the lower-right of the dial; a same-sized music panel on the right shows the track, artist and elapsed/remaining time.
 
-Minimal, Track, Drag, Rally, Retro 80s, Cruise, Dyno, Ribbon, Runway, M Performance and Roma have no map window yet; with "Show Waze map inside the theme" on, Waze stays in its usual place while they show.
+Minimal, Track, Drag, Rally, Retro 80s, Cruise, Dyno, Ribbon, Runway, M Performance and Roma have no map window; with "Show Waze map inside the theme" on, Waze stays in its usual place while they show.
 
 More themes are on the way.
 

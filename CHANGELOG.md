@@ -4,6 +4,16 @@ Newest first. Dates are when the build was pushed.
 
 ## Nov 20 2026
 
+- **Cluster Themes 0.20.17:** Roma's tachometer now ends at 7 (7000 rpm), with its redline marks starting at 6.
+- **Cluster Themes 0.20.16:** Roma's speed and gear cards move right; the speed field is wider and taller so large values and the unit no longer crowd each other.
+- **Cluster Themes 0.20.15:** Roma's right music panel now matches the left engine-status panel's size and alignment.
+- **Cluster Themes 0.20.14:** Roma now has a music panel to the right of the speedometer, showing the current track, artist and playback times.
+- **Cluster Themes 0.20.13:** Roma's left engine-status panel is back, with water, oil, boost and fuel readouts and bars.
+- **Cluster Themes 0.20.12:** Roma's dial is now a static gold 0–10 tachometer with fixed ticks and redline marks; only its red RPM needle moves. The extra status panel and map window are gone.
+- **Cluster Themes 0.20.11:** Roma's red needle follows engine rpm, matching the rev dial.
+- **Cluster Themes 0.20.10:** Roma's red pointer is now a live speed needle: it parks at zero and sweeps with vehicle speed.
+- **Cluster Themes 0.20.9:** Roma's dial is more detailed, with a bright outer face, finer live rev segments, a concentric hub and a red resting needle; the speed and gear cards are refined to sit over its right edge.
+- **Cluster Themes 0.20.8:** Roma's layout now has a large gold segmented rev dial, a left engine-status panel, speed and gear over the dial, and an optional live Waze map window on the right.
 - **Cluster Themes 0.20.7:** **New theme: Roma**, an original Ferrari Roma-inspired grand touring layout with a Rosso Corsa rev arc, warm gold fuel arc and central speed and gear.
 - **Cluster Themes 0.20.6:** **New theme: M Performance**, inspired by the supplied dashboard: a single angled rev band with the 1–8 scale above it, centre speed and gear, and Runway-style range, media, left readouts, rings and bottom bars.
 - **Cluster Themes 0.20.5:** **New theme: Runway**, with twin rev bars in perspective, slot-based power and torque rings, a G-meter or four readouts, and range, media, coolant, boost and trip details. The left panel mode is selectable in Settings.

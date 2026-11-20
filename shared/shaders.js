@@ -2053,6 +2053,73 @@ void main() {
 }
 `;
 
+const ROMADIAL = `// Static Roma-inspired tachometer face. The separate needle layer is the only moving dial element.
+precision mediump float;
+varying vec2 v_uv;
+uniform vec2 u_size;
+uniform vec2 u_center;
+uniform float u_outer;
+uniform float u_inner;
+uniform float u_start;
+uniform float u_sweep;
+uniform float u_max;
+uniform float u_redline;
+uniform vec3 u_gold;
+uniform vec3 u_edge;
+uniform vec3 u_ink;
+uniform vec3 u_mark;
+uniform vec3 u_red;
+uniform vec3 u_hub;
+uniform vec3 u_hubEdge;
+
+float aa(float d) { return clamp(0.5 - d, 0.0, 1.0); }
+
+void main() {
+    vec2 p = v_uv * u_size;
+    vec2 d = p - u_center;
+    float r = length(d);
+    float outer = 1.0 - smoothstep(u_outer - 1.0, u_outer + 1.0, r);
+    float inner = 1.0 - smoothstep(u_inner - 1.0, u_inner + 1.0, r);
+    float face = outer * (1.0 - inner);
+    float radial = clamp((r - u_inner) / max(u_outer - u_inner, 1.0), 0.0, 1.0);
+    vec3 hub = mix(u_hubEdge, u_hub, clamp(r / max(u_inner, 1.0), 0.0, 1.0));
+    vec3 gold = mix(u_gold, u_edge, radial * 0.18);
+    vec3 c = mix(hub, gold, face);
+
+    float outerRim = 1.0 - smoothstep(1.0, 2.0, abs(r - u_outer));
+    float innerRim = 1.0 - smoothstep(1.0, 2.0, abs(r - u_inner));
+    c = mix(c, u_edge, outerRim * 0.9);
+    c = mix(c, u_ink, innerRim * 0.85);
+
+    float tau = 6.28318530718;
+    float angle = atan(d.x, -d.y);
+    float rel = mod(angle - u_start + tau, tau);
+    float inScale = 1.0 - step(u_sweep + 0.0001, rel);
+    float divisions = max(u_max * 4.0, 1.0);
+    float index = floor(rel / max(u_sweep / divisions, 0.0001) + 0.5);
+    float tickAngle = u_start + index * u_sweep / divisions;
+    vec2 direction = vec2(sin(tickAngle), -cos(tickAngle));
+    float along = dot(d, direction);
+    float side = abs(d.x * direction.y - d.y * direction.x);
+    float major = 1.0 - step(0.5, mod(index, 4.0));
+    float tickStart = u_outer - mix(12.0, 27.0, major);
+    float tickEnd = u_outer - 7.0;
+    float tick = aa(side - 1.0)
+        * smoothstep(tickStart - 1.0, tickStart + 1.0, along)
+        * (1.0 - smoothstep(tickEnd - 1.0, tickEnd + 1.0, along))
+        * inScale;
+    float redTick = step(u_redline * 4.0, index);
+    vec3 tickColor = mix(u_mark, u_ink, major * 0.6);
+    tickColor = mix(tickColor, u_red, redTick);
+    c = mix(c, tickColor, tick);
+
+    float redline = step(u_sweep * u_redline / max(u_max, 0.001), rel) * inScale
+        * aa(abs(r - (u_outer - 18.0)) - 2.0);
+    c = mix(c, u_red, redline);
+    gl_FragColor = vec4(c, outer);
+}
+`;
+
 const MPERF = `// M Performance: one bent, live rev band and two slot-driven power / torque rings.
 #ifdef GL_FRAGMENT_PRECISION_HIGH
 precision highp float;
@@ -2352,4 +2419,4 @@ void main() {
 }
 `;
 
-module.exports = { shiftbar: SHIFTBAR, arc: ARC, revbar: REVBAR, lights: LIGHTS, fill: FILL, box: BOX, grid: GRID, segbar: SEGBAR, mdash: MDASH, mtach: MTACH, sdash: SDASH, boxes: BOXES, atext: ATEXT, meter: METER, gmeter: GMETER, revarc: REVARC, tiles: TILES, ribbon: RIBBON, deco: DECO, mview: MVIEW, vdash: VDASH, e36dash: E36DASH, e36econ: E36ECON, e36needles: E36NEEDLES, runway: RUNWAY, mperf: MPERF };
+module.exports = { shiftbar: SHIFTBAR, arc: ARC, revbar: REVBAR, lights: LIGHTS, fill: FILL, box: BOX, grid: GRID, segbar: SEGBAR, mdash: MDASH, mtach: MTACH, sdash: SDASH, boxes: BOXES, atext: ATEXT, meter: METER, gmeter: GMETER, revarc: REVARC, romadial: ROMADIAL, tiles: TILES, ribbon: RIBBON, deco: DECO, mview: MVIEW, vdash: VDASH, e36dash: E36DASH, e36econ: E36ECON, e36needles: E36NEEDLES, runway: RUNWAY, mperf: MPERF };

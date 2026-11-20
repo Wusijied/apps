@@ -132,6 +132,8 @@
  *   revarc    effect layer (shaders.js revarc): a segmented rev arc, the Rally theme's: centre "center" [x, y] (layer px, may
  *             sit below the layer), outer radius "r", "band" px (40), "start" / "sweep" degrees clockwise from 12 o'clock,
  *             "segments" (30); colours, flash and scale as the shiftbar.
+ *   romadial  effect layer (shaders.js romadial): a fixed gold circular tachometer face with a dark hub, scale ticks and
+ *             redline zone; "center", "outer", "inner", "start", "sweep", "max" and "redline" set its geometry and scale.
  *   mperf     effect layer (shaders.js mperf): a bent rev band following "path" points, with slot-based "rings",
  *             segmented "mtrs" and thin "lines"; its fill follows rpm and the theme's shift cue.
  *   tiles     effect layer (shaders.js tiles): the Dyno theme's readout tiles in ONE layer: the background (role "color",
@@ -2611,6 +2613,22 @@ class HudApp {
             c.uniform(ref, 'u_c2', rgb(color(t, zc[1] || zc[0])));
             c.uniform(ref, 'u_c3', rgb(color(t, zc[2] || zc[1] || zc[0])));
             c.uniform(ref, 'u_at', w.at || [0.6, 0.85]);
+        } else if (w.type === 'romadial') {
+            c.uniform(ref, 'u_size', [w.w, w.h]);
+            c.uniform(ref, 'u_center', w.center);
+            c.uniform(ref, 'u_outer', [w.outer]);
+            c.uniform(ref, 'u_inner', [w.inner]);
+            c.uniform(ref, 'u_start', [w.start * Math.PI / 180]);
+            c.uniform(ref, 'u_sweep', [w.sweep * Math.PI / 180]);
+            c.uniform(ref, 'u_max', [w.max]);
+            c.uniform(ref, 'u_redline', [w.redline]);
+            c.uniform(ref, 'u_gold', rgb(color(t, 'gold')));
+            c.uniform(ref, 'u_edge', rgb(color(t, 'goldShade')));
+            c.uniform(ref, 'u_ink', rgb(color(t, 'dialInk')));
+            c.uniform(ref, 'u_mark', rgb(color(t, 'tickMark')));
+            c.uniform(ref, 'u_red', rgb(color(t, 'rosso')));
+            c.uniform(ref, 'u_hub', rgb(color(t, 'dialFace')));
+            c.uniform(ref, 'u_hubEdge', rgb(color(t, 'bezel')));
         }
         this._update(x, Date.now(), true);
     }

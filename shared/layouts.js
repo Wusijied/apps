@@ -45,6 +45,7 @@ const TYPES = {
     gmeter: [],
     tiles: ['tiles'],
     revarc: ['center', 'r', 'start', 'sweep'],
+    romadial: ['center', 'outer', 'inner', 'start', 'sweep', 'max', 'redline'],
     ribbon: ['curve', 'span'],
     runway: ['bars', 'barY'],
     mperf: ['path', 'rings'],
