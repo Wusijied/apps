@@ -1,0 +1,18 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Run Cluster Themes browser bench",
+			"type": "shell",
+			"command": "env",
+			"args": [
+				"BENCH_PORT=8079",
+				"node",
+				"bench/server.js",
+				"cluster_themes"
+			],
+			"isBackground": true,
+			"problemMatcher": []
+		}
+	]
+}

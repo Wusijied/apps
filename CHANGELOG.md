@@ -4,6 +4,7 @@ Newest first. Dates are when the build was pushed.
 
 ## Nov 20 2026
 
+- **Cluster Themes 0.20.6:** **New theme: M Performance**, inspired by the supplied dashboard: a single angled rev band with the 1–8 scale above it, centre speed and gear, and Runway-style range, media, left readouts, rings and bottom bars.
 - **Cluster Themes 0.20.5:** **New theme: Runway**, with twin rev bars in perspective, slot-based power and torque rings, a G-meter or four readouts, and range, media, coolant, boost and trip details. The left panel mode is selectable in Settings.
 
 ## Nov 17 2026

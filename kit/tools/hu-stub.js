@@ -106,6 +106,9 @@ function headUnit(stage, o) {
         const realLoad = Module._load;
         const run = live ? async (impl) => {
             // as mgu.js: the settings screen / sheet, the app, then its entry state opened
+            if (impl.startBackground) {
+                try { await impl.startBackground(ctx); } catch (e) { log.error('background start', e); }
+            }
             try { await wireSettings(src, kitDir, spec)(ctx); } catch (e) { log.error('settings screen', e); }
             try { await impl.start(ctx); } catch (e) { log.error('app start', e); }
             log.info('initialized');

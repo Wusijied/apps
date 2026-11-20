@@ -47,6 +47,7 @@ const TYPES = {
     revarc: ['center', 'r', 'start', 'sweep'],
     ribbon: ['curve', 'span'],
     runway: ['bars', 'barY'],
+    mperf: ['path', 'rings'],
     deco: [],
     nav: [],
 };

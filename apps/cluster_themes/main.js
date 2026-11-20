@@ -11,10 +11,10 @@
 const mgu = require('./kit/mgu');
 const HudApp = require('./hud');
 const Page = require('./page');
+let hud;
 
 mgu.run({
-    start(ctx) {
-        let hud;
+    startBackground(ctx) {
         try {
             hud = new HudApp(ctx);
         } catch (e) {
@@ -23,14 +23,17 @@ mgu.run({
             return;
         }
         hud.start();
+        process.on('exit', () => { try { hud.stop(); } catch (e) { /* exiting anyway */ } });
+    },
+    start(ctx) {
+        if (!hud) return;
         new Page(ctx, hud, {
             title: ctx.spec.title, what: 'cluster',
-            look: { name: 'Themes', style: 'hero', tags: { gt3: 'race dash', m: 'M8 style', mview: 'M3 / M5 look', vector: 'music panel', e36: '328i · 90s', sport: 'Live Cockpit', minimal: 'just the speed', track: 'tyres + temps', drag: '0-60 timer', rally: 'rev arc · G-meter', retro80s: '80s digital', cruise: 'calm · trip', dyno: 'safety tiles', ribbon: 'calm · holidays', runway: 'twin rev bars' } },
+            look: { name: 'Themes', style: 'hero', tags: { gt3: 'race dash', m: 'M8 style', mview: 'M3 / M5 look', vector: 'music panel', e36: '328i · 90s', sport: 'Live Cockpit', minimal: 'just the speed', track: 'tyres + temps', drag: '0-60 timer', rally: 'rev arc · G-meter', retro80s: '80s digital', cruise: 'calm · trip', dyno: 'safety tiles', ribbon: 'calm · holidays', runway: 'twin rev bars', mperformance: 'angled rev bar · power rings' } },
             tabs: ['look', 'readouts', 'badge', 'map', 'alerts', 'gmeter', 'settings'],
             settings: ['units', 'clock', 'timeZone', 'tankLitres', 'redline', 'shiftBefore', 'coldGuard', 'showBoost', 'nightDim', 'cameraNotch', 'holiday', 'runwayLeft', 'demo'],
             // the drive mode check's candidates this app's app.json listens to (issue #8; shared/hud.js modeDiagLines)
             modeCheck: ['HMI', 'MDrive', 'Engine', 'Sport2'],
         }).start();
-        process.on('exit', () => { try { hud.stop(); } catch (e) { /* exiting anyway */ } });
     },
 });

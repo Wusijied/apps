@@ -2053,6 +2053,116 @@ void main() {
 }
 `;
 
+const MPERF = `// M Performance: one bent, live rev band and two slot-driven power / torque rings.
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
+precision mediump float;
+#endif
+varying vec2 v_uv;
+uniform vec2 u_size;
+uniform vec4 u_path[4];
+uniform float u_pathLen[4];
+uniform float u_pathCount;
+uniform float u_pathTotal;
+uniform vec4 u_line[4];
+uniform float u_lineCount;
+uniform vec4 u_ring[2];
+uniform vec4 u_mtr[2];
+uniform float u_value;
+uniform float u_redFrom;
+uniform float u_flash;
+uniform vec3 u_white;
+uniform vec3 u_green;
+uniform vec3 u_yellow;
+uniform vec3 u_red;
+uniform vec3 u_track;
+uniform vec3 u_frame;
+
+const float PI = 3.14159265359;
+
+float segDist(vec2 p, vec2 a, vec2 b, out float along) {
+    vec2 d = b - a;
+    float h = clamp(dot(p - a, d) / max(dot(d, d), 0.001), 0.0, 1.0);
+    along = h;
+    return length(p - (a + d * h));
+}
+
+vec3 revColor(float t) {
+    if (t >= u_redFrom) return u_red;
+    if (t >= 0.59) return u_yellow;
+    if (t >= 0.46) return u_green;
+    return u_white;
+}
+
+void main() {
+    vec2 p = v_uv * u_size;
+    vec3 c = vec3(0.0);
+    float nearest = 1e5, progress = 0.0, travelled = 0.0;
+    for (int i = 0; i < 4; i++) {
+        if (float(i) >= u_pathCount) break;
+        vec4 s = u_path[i];
+        float along;
+        float d = segDist(p, s.xy, s.zw, along);
+        if (d < nearest) {
+            nearest = d;
+            progress = (travelled + along * u_pathLen[i]) / max(u_pathTotal, 1.0);
+        }
+        travelled += u_pathLen[i];
+    }
+
+    if (nearest < 43.0) {
+        c = u_track * 0.22;
+        if (nearest < 26.0) c = vec3(0.025, 0.027, 0.03);
+        if (nearest < 20.0) {
+            c = progress <= u_value ? revColor(progress) : vec3(0.10, 0.105, 0.115);
+            float gap = min(fract(progress * 8.0), 1.0 - fract(progress * 8.0));
+            if (progress > 0.01 && gap < 0.014) c = vec3(0.0);
+            if (u_flash > 0.5 && progress <= u_value) c = u_red;
+        }
+        float outer = clamp(1.0 - abs(nearest - 39.0), 0.0, 1.0);
+        float inner = clamp(1.0 - abs(nearest - 24.0), 0.0, 1.0);
+        c = mix(c, u_frame, max(outer, inner) * 0.95);
+    }
+
+    for (int i = 0; i < 4; i++) {
+        if (float(i) >= u_lineCount) break;
+        vec4 s = u_line[i];
+        float along;
+        float d = segDist(p, s.xy, s.zw, along);
+        c = mix(c, u_frame * 0.65, clamp(1.0 - d, 0.0, 1.0));
+    }
+
+    for (int i = 0; i < 2; i++) {
+        vec4 g = u_ring[i];
+        if (g.z <= 0.0) continue;
+        vec2 d = p - g.xy;
+        float r = length(d);
+        float edge = clamp(1.0 - abs(r - g.z), 0.0, 1.0);
+        float band = clamp(1.0 - abs(r - g.z) / 7.0, 0.0, 1.0);
+        if (band > 0.0) {
+            float a = atan(d.x, -d.y);
+            if (a < 0.0) a += 2.0 * PI;
+            float rel = mod(a - 2.42 + 2.0 * PI, 2.0 * PI);
+            bool lit = rel <= 5.05 * g.w;
+            vec3 ring = lit ? u_red : vec3(0.40, 0.42, 0.46);
+            c = mix(c, ring, band);
+            c = mix(c, u_frame, edge * 0.75);
+        }
+    }
+    for (int i = 0; i < 2; i++) {
+        vec4 m = u_mtr[i];
+        if (m.z <= 0.0 || p.y < m.y || p.y > m.y + 8.0 || p.x < m.x || p.x > m.x + m.z) continue;
+        float sw = m.z / 14.0, f = (p.x - m.x) / sw;
+        float s = floor(f);
+        float inside = step(f - s, 1.0 - 4.0 / sw);
+        float lit = step((s + 0.5) / 14.0, m.w + 0.001) * step(0.001, m.w);
+        c = mix(c, lit > 0.5 ? u_white : u_track * 0.6, inside);
+    }
+    gl_FragColor = vec4(c, 1.0);
+}
+`;
+
 const RUNWAY = `// The Runway theme in one cluster-render "effect" layer (GLSL ES 1.00): black, two rev bars that lean apart towards
 // the driver like a runway in perspective (u_bar: the left bar's outer and inner x at the top and the bottom, rows u_barY
 // .x .. .y; the right bar is its mirror about u_barY.z). Each bar, after the Audi-style "runway" view: a thick glossy
@@ -2242,4 +2352,4 @@ void main() {
 }
 `;
 
-module.exports = { shiftbar: SHIFTBAR, arc: ARC, revbar: REVBAR, lights: LIGHTS, fill: FILL, box: BOX, grid: GRID, segbar: SEGBAR, mdash: MDASH, mtach: MTACH, sdash: SDASH, boxes: BOXES, atext: ATEXT, meter: METER, gmeter: GMETER, revarc: REVARC, tiles: TILES, ribbon: RIBBON, deco: DECO, mview: MVIEW, vdash: VDASH, e36dash: E36DASH, e36econ: E36ECON, e36needles: E36NEEDLES, runway: RUNWAY };
+module.exports = { shiftbar: SHIFTBAR, arc: ARC, revbar: REVBAR, lights: LIGHTS, fill: FILL, box: BOX, grid: GRID, segbar: SEGBAR, mdash: MDASH, mtach: MTACH, sdash: SDASH, boxes: BOXES, atext: ATEXT, meter: METER, gmeter: GMETER, revarc: REVARC, tiles: TILES, ribbon: RIBBON, deco: DECO, mview: MVIEW, vdash: VDASH, e36dash: E36DASH, e36econ: E36ECON, e36needles: E36NEEDLES, runway: RUNWAY, mperf: MPERF };

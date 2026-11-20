@@ -145,7 +145,11 @@ Two rev bars that lean apart towards you like a runway seen from the cockpit. Th
 
 <p align="center"><img src="../../docs/images/cluster-runway.png" width="900" alt="Runway theme"></p>
 
-Minimal, Track, Drag, Rally, Retro 80s, Cruise, Dyno, Ribbon and Runway have no map window yet; with "Show Waze map inside the theme" on, Waze stays in its usual place while they show.
+### M Performance
+
+Inspired by the supplied reference, with Runway's layout for the other readouts: the 1–8 scale sits above a single bent, live rev bar, with the speed and gear in the centre. The left panel shows a G-meter or four customizable readouts, and live power and torque rings sit on the right. Range and currently playing media sit at the top; coolant, boost, clock and outside temperature line the bottom. The rings, bars and left readouts can be changed on the Readouts tab.
+
+Minimal, Track, Drag, Rally, Retro 80s, Cruise, Dyno, Ribbon, Runway and M Performance have no map window yet; with "Show Waze map inside the theme" on, Waze stays in its usual place while they show.
 
 More themes are on the way.
 
@@ -159,7 +163,7 @@ More themes are on the way.
 ## Settings
 
 - **Theme**, and one per drive mode.
-- **Readouts:** pick which car sensor each GT3, M, Track, Drag, Rally, Retro 80s, Dyno or Runway readout shows (speed, rpm, boost, temperatures, tyres, fuel, g, power and more). Plug-in hybrids can also show **Hybrid battery**, the high-voltage battery's charge in % (not yet checked on a hybrid).
+- **Readouts:** pick which car sensor each GT3, M, Track, Drag, Rally, Retro 80s, Dyno, Runway or M Performance readout shows (speed, rpm, boost, temperatures, tyres, fuel, g, power and more). Plug-in hybrids can also show **Hybrid battery**, the high-voltage battery's charge in % (not yet checked on a hybrid).
 - **Show Waze map inside the theme:** GT3, Sport and M open a window in the middle and Waze on Cluster draws its map in it, above BMW's own map view, so nothing shows twice. When the map goes away the theme fills back in. While it is on, Waze's map on the HUD is off. Needs robertnisipeanu's Waze on Cluster; turning it off gives Waze its usual place back.
 - **Badge:** the model name, like "BMW X3 M40i", as text in the theme's font (GT3 top left, Sport, M and Minimal top centre, where BMW puts its own). Off by default.
 - **Warnings:** oil, coolant and boost limits. A readout over its limit flashes red (oil 130°C and coolant 115°C by default, boost off).

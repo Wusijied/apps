@@ -219,6 +219,17 @@ const THEMES = {
         ink: [24, 24, 28, 255], accent: [230, 30, 38, 255], well: [0, 0, 0, 255],
         barLit: [246, 247, 250, 255], barOff: [96, 100, 108, 255], redOff: [178, 16, 24, 255], ringTrack: [120, 124, 132, 255],
     },
+    // M Performance (layout mperformance.json): white bent rev scale, green / yellow / red shift zones and red power rings.
+    mperformance: {
+        name: 'M Performance',
+        fg: [245, 246, 248, 255], dim: [156, 160, 168, 255], track: [92, 96, 104, 255], arc: [230, 34, 42, 255],
+        glow: 0, stripe: false,
+        bar: { low: [245, 246, 248], mid: [255, 202, 0], high: [230, 34, 42], midAt: 'shift' },
+        rev: { from: [245, 246, 248], to: [245, 246, 248] },
+        bg: [0, 0, 0, 255], panel: [0, 0, 0, 255], line: [205, 208, 214, 255], head: [226, 228, 232, 255],
+        ink: [12, 12, 14, 255], accent: [230, 34, 42, 255], well: [0, 0, 0, 255],
+        green: [80, 232, 48, 255],
+    },
     ribbon_xmas: {
         name: 'Ribbon · Christmas',
         fg: [246, 241, 230, 255], dim: [127, 154, 136, 255], track: [29, 39, 51, 255], arc: [232, 194, 90, 255],

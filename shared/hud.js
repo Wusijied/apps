@@ -132,6 +132,8 @@
  *   revarc    effect layer (shaders.js revarc): a segmented rev arc, the Rally theme's: centre "center" [x, y] (layer px, may
  *             sit below the layer), outer radius "r", "band" px (40), "start" / "sweep" degrees clockwise from 12 o'clock,
  *             "segments" (30); colours, flash and scale as the shiftbar.
+ *   mperf     effect layer (shaders.js mperf): a bent rev band following "path" points, with slot-based "rings",
+ *             segmented "mtrs" and thin "lines"; its fill follows rpm and the theme's shift cue.
  *   tiles     effect layer (shaders.js tiles): the Dyno theme's readout tiles in ONE layer: the background (role "color",
  *             bg) and up to 14 rounded tiles "tiles": [{ id, x, y, w, h (target px), slot, bar (false: none), toggle }],
  *             each with a thin "accent" strip on top and a bar along the bottom for its slot's sensor (TILE_BAR; zoned
@@ -2275,6 +2277,52 @@ class HudApp {
             c.uniform(ref, 'u_tach', T ? [T[0], T[1], T[2], T[3] || 1e5] : [0, 0, 0, 0]);
             c.uniform(ref, 'u_light', [this.nightOn ? 0 : 1]);     // softer needle shadows at night
             x.econ = new e36.Smooth(1000);
+        } else if (w.type === 'mperf') {
+            const path = w.path.slice(0, 5), segments = [], lengths = [];
+            let total = 0;
+            for (let i = 1; i < path.length; i++) {
+                const x0 = path[i - 1][0] - w.x, y0 = path[i - 1][1] - w.y;
+                const x1 = path[i][0] - w.x, y1 = path[i][1] - w.y;
+                const len = Math.hypot(x1 - x0, y1 - y0);
+                segments.push(x0, y0, x1, y1);
+                lengths.push(len);
+                total += len;
+            }
+            while (segments.length < 16) segments.push(0);
+            while (lengths.length < 4) lengths.push(0);
+            const lines = [];
+            (w.lines || []).slice(0, 4).forEach((g) => lines.push(g[0] - w.x, g[1] - w.y, g[2] - w.x, g[3] - w.y));
+            const nline = lines.length / 4;
+            while (lines.length < 16) lines.push(0);
+            const rings = (w.rings || []).slice(0, 2), ringValues = [];
+            rings.forEach((g) => { ringValues.push(this._slotFrac(g.slot)); });
+            while (rings.length < 2) { rings.push(null); ringValues.push(0); }
+            const ringUniforms = [];
+            rings.forEach((g, i) => ringUniforms.push(g ? g.cx - w.x : 0, g ? g.cy - w.y : 0, g ? g.r : 0, ringValues[i]));
+            const meters = (w.mtrs || []).slice(0, 2), meterValues = meters.map((m) => this._slotFrac(m.slot));
+            while (meterValues.length < 2) meterValues.push(0);
+            const meterUniforms = [];
+            meters.forEach((m, i) => meterUniforms.push(m.x - w.x, m.y - w.y, m.w, meterValues[i] || 0));
+            while (meterUniforms.length < 8) meterUniforms.push(0);
+            c.uniform(ref, 'u_size', [w.w, w.h]);
+            c.uniform(ref, 'u_path', segments, { type: 'vec4' });
+            c.uniform(ref, 'u_pathLen', lengths, { type: 'float' });
+            c.uniform(ref, 'u_pathCount', [path.length - 1]);
+            c.uniform(ref, 'u_pathTotal', [total]);
+            c.uniform(ref, 'u_line', lines, { type: 'vec4' });
+            c.uniform(ref, 'u_lineCount', [nline]);
+            c.uniform(ref, 'u_white', rgb(t.fg));
+            c.uniform(ref, 'u_green', rgb(color(t, 'green')));
+            c.uniform(ref, 'u_yellow', rgb(t.bar.mid));
+            c.uniform(ref, 'u_red', rgb(t.hot));
+            c.uniform(ref, 'u_track', rgb(t.track));
+            c.uniform(ref, 'u_frame', rgb(t.line));
+            const max = this._barMax();
+            c.uniform(ref, 'u_redFrom', [Math.min(this.setting('redline'), max) / max]);
+            c.uniform(ref, 'u_value', [0]);
+            c.uniform(ref, 'u_flash', [0]);
+            c.uniform(ref, 'u_ring', ringUniforms, { type: 'vec4' });
+            c.uniform(ref, 'u_mtr', meterUniforms, { type: 'vec4' });
         } else if (w.type === 'runway') {
             const B = w.bars, Y = w.barY, max = this._barMax();
             const lines = [];
@@ -2887,6 +2935,29 @@ class HudApp {
             x.c.uniform(x.ref, 'u_rpm', [vals[1]]);
             x.c.uniform(x.ref, 'u_fuel', [vals[2]]);
             x.c.uniform(x.ref, 'u_oil', [vals[3]]);
+        } else if (w.type === 'mperf') {
+            const rpm = this._raw('rpm'), max = this._barMax();
+            const value = isNum(rpm) ? Math.min(1, Math.max(0, rpm / max)) : 0;
+            const rings = (w.rings || []).slice(0, 2), values = [];
+            rings.forEach((g) => { values.push(this._slotFrac(g.slot)); });
+            while (values.length < 2) values.push(0);
+            const meters = (w.mtrs || []).slice(0, 2), meterValues = [];
+            meters.forEach((m) => { meterValues.push(this._slotFrac(m.slot)); });
+            while (meterValues.length < 2) meterValues.push(0);
+            const key = [value.toFixed(3), this.flash ? 1 : 0].concat(values.map((v) => v.toFixed(3)),
+                meterValues.map((v) => v.toFixed(3))).join('|');
+            if (!force && key === x.last) return;
+            x.last = key;
+            x.c.uniform(x.ref, 'u_value', [value]);
+            x.c.uniform(x.ref, 'u_flash', [this.flash ? 1 : 0]);
+            const ringUniforms = [];
+            rings.forEach((g, i) => ringUniforms.push(g.cx - w.x, g.cy - w.y, g.r, values[i] || 0));
+            while (ringUniforms.length < 8) ringUniforms.push(0);
+            x.c.uniform(x.ref, 'u_ring', ringUniforms, { type: 'vec4' });
+            const meterUniforms = [];
+            meters.forEach((m, i) => meterUniforms.push(m.x - w.x, m.y - w.y, m.w, meterValues[i] || 0));
+            while (meterUniforms.length < 8) meterUniforms.push(0);
+            x.c.uniform(x.ref, 'u_mtr', meterUniforms, { type: 'vec4' });
         } else if (w.type === 'runway') {
             const end = this._barMax() / 1000 + 0.5;
             const q = (v) => Math.round(Math.min(1, Math.max(0, v)) * 400) / 400;
