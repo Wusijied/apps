@@ -21,6 +21,8 @@ mgu-repo.json     tells the Store how to build the apps
 
 `python3 kit/tools/build.py <id>` builds one app into `dist/`. It needs an `oap-sdk/` folder. On the car the Store makes the real one from a BMW app. On the Mac the bench writes a stub, which is gitignored and must never ship.
 
+An app can set `mguAppStartType` in `app.json` to `autostart`, `lum` or `manually`; the build copies this setting into the packaged `source/package.json`.
+
 ## Test on the Mac
 
 ```sh
