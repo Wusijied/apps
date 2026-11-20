@@ -149,7 +149,11 @@ Two rev bars that lean apart towards you like a runway seen from the cockpit. Th
 
 Inspired by the supplied reference, with Runway's layout for the other readouts: the 1–8 scale sits above a single bent, live rev bar, with the speed and gear in the centre. The left panel shows a G-meter or four customizable readouts, and live power and torque rings sit on the right. Range and currently playing media sit at the top; coolant, boost, clock and outside temperature line the bottom. The rings, bars and left readouts can be changed on the Readouts tab.
 
-Minimal, Track, Drag, Rally, Retro 80s, Cruise, Dyno, Ribbon, Runway and M Performance have no map window yet; with "Show Waze map inside the theme" on, Waze stays in its usual place while they show.
+### Roma
+
+An original Ferrari Roma-inspired grand touring layout, not a reproduction of the car's OEM display. Warm ivory figures and champagne-gold accents sit on black, with a Rosso Corsa rev arc, a fuel arc, and the speed, gear and drive mode in the centre. Oil, water and boost are shown below.
+
+Minimal, Track, Drag, Rally, Retro 80s, Cruise, Dyno, Ribbon, Runway, M Performance and Roma have no map window yet; with "Show Waze map inside the theme" on, Waze stays in its usual place while they show.
 
 More themes are on the way.
 

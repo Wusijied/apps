@@ -230,6 +230,17 @@ const THEMES = {
         ink: [12, 12, 14, 255], accent: [230, 34, 42, 255], well: [0, 0, 0, 255],
         green: [80, 232, 48, 255],
     },
+    // Roma: an original grand touring palette, with warm ivory, champagne gold and Rosso Corsa accents.
+    roma: {
+        name: 'Roma',
+        fg: [245, 242, 235, 255], dim: [151, 145, 137, 255], track: [70, 61, 54, 255], arc: [204, 170, 113, 255],
+        glow: 0, stripe: false,
+        bar: { low: [204, 170, 113], mid: [204, 170, 113], high: [212, 24, 45], midAt: 'shift' },
+        rev: { from: [204, 170, 113], to: [204, 170, 113] },
+        bg: [0, 0, 0, 255], panel: [0, 0, 0, 255], line: [105, 88, 67, 255], head: [224, 199, 157, 255],
+        ink: [12, 12, 14, 255], accent: [212, 24, 45, 255], well: [0, 0, 0, 255],
+        gold: [204, 170, 113, 255], rosso: [212, 24, 45, 255],
+    },
     ribbon_xmas: {
         name: 'Ribbon · Christmas',
         fg: [246, 241, 230, 255], dim: [127, 154, 136, 255], track: [29, 39, 51, 255], arc: [232, 194, 90, 255],
