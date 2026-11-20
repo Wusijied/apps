@@ -2,6 +2,10 @@
 
 Newest first. Dates are when the build was pushed.
 
+## Nov 20 2026
+
+- **Cluster Themes 0.20.5:** **New theme: Runway**, with twin rev bars in perspective, slot-based power and torque rings, a G-meter or four readouts, and range, media, coolant, boost and trip details. The left panel mode is selectable in Settings.
+
 ## Nov 17 2026
 
 - **Cluster Themes 0.20.4:** E36: the range's fuel pump icon on the LCD is as tall as the figures.

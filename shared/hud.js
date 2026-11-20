@@ -146,6 +146,7 @@
  *             so the line passes under the camera. A theme with "bulbs": true draws a string of Christmas bulbs instead.
  *             Its numbers are text widgets toggled by the virtual setting "ribScale" (thousands on the scale, "c" added
  *             while the camera dip is on: "7", "7c").
+ *   runway    effect layer (shaders.js runway): the Runway theme's black backdrop, twin rev bars, slot-based rings and meters.
  *   deco      effect layer (shaders.js deco): the Ribbon theme's whole backdrop: role "bg" over the panel, a rounded frame
  *             "pill" [x, y, w, h] (role "accent") round the gear, and the theme's holiday art ("deco": 1 snow, 2 unused,
  *             3 Fourth of July, 4 New Year, 5 Thanksgiving; colours "decoColors" [3 rgb]) kept out of "keep" [[x0, y0, x1,
@@ -370,7 +371,7 @@ function mediaText(v) {
 /** Seconds as m:ss. */
 function clockOf(sec) { const t = Math.max(0, Math.floor(sec)); return Math.floor(t / 60) + ':' + ('0' + (t % 60)).slice(-2); }   // its speed scale: 0..200 mph by 20, 0..330 km/h by 30 (linear)
 const ROAD_DASH_M = 12;            // the Sport road: metres per dash and gap (shaders.js sdash u_road)
-const CUE_TYPES = { lights: true, shiftbar: true, revbar: true, revarc: true, ribbon: true, mtach: true };
+const CUE_TYPES = { lights: true, shiftbar: true, revbar: true, revarc: true, ribbon: true, mtach: true, runway: true };
 // the shift-light test (page.js Alerts): rpm climbs from TEST_FROM to just past the shift point, then holds
 const TEST_FROM = 1500, TEST_CLIMB_MS = 2500, TEST_HOLD_MS = 1200;
 // night colours (Cluster Themes "nightDim"): after sunset the theme's whites and greys go to this brightness
@@ -628,7 +629,7 @@ class HudApp {
     _setNeeds(shown) {
         this.shownW = shown;
         const ids = [];
-        shown.forEach((w) => [w].concat(Array.isArray(w.tiles) ? w.tiles : []).forEach((b) => {
+        shown.forEach((w) => [w].concat(Array.isArray(w.tiles) ? w.tiles : [], Array.isArray(w.rings) ? w.rings : [], Array.isArray(w.mtrs) ? w.mtrs : []).forEach((b) => {
             const sn = b && b.slot ? this.slotSensor(this.activeName, b.slot, this.layoutSlots) : null;
             if (sn) ids.push(sn.id);
         }));
@@ -1678,6 +1679,17 @@ class HudApp {
         return Object.prototype.hasOwnProperty.call(d, name) ? d[name] : null;
     }
 
+    /** 0..1 of the bar for the sensor currently selected by a readout slot. */
+    _slotFrac(id) {
+        const sn = id ? this.slotSensor(this.activeName, id, this.layoutSlots) : null;
+        const bar = sn ? TILE_BAR[sn.id] : null;
+        if (!bar) return 0;
+        const max = bar.max === 'rpm' ? this._barMax() : bar.max;
+        let raw = this._raw(bar.raw);
+        if (bar.abs && isNum(raw)) raw = Math.abs(raw);
+        return isNum(raw) && max !== bar.min ? Math.min(1, Math.max(0, (raw - bar.min) / (max - bar.min))) : 0;
+    }
+
     /** Where the red and orange marks start on a rev scale that ends at `max` rpm, as fractions 0..1: red from the
      *  redline, but always covering at least the last 500 rpm (the M40i's scale ends right at its 7000 redline),
      *  orange over the 700 rpm before the red. */
@@ -1716,6 +1728,7 @@ class HudApp {
             const kind = tok.slice(0, tok.indexOf(':')), sn = this.slotSensor(this.activeName, tok.slice(kind.length + 1), this.layoutSlots);
             if (kind === 'slot') return this.sensorValue(sn);
             if (kind === 'slotHead') return sn ? sn.head : '';
+            if (kind === 'slotTitle') return sn ? sn.head.charAt(0) + sn.head.slice(1).toLowerCase() : '';
             if (kind === 'slotHeadS') return sn ? sn.short || sn.head : '';     // M's slot rows: LAST SHIFT -> SHIFTED
             // the heading with the unit, for a slot with no unit of its own: "FUEL %" (a temperature's ° is on its value)
             if (kind === 'slotHeadU') { const u = sn && !sn.suffix ? this.sensorUnit(sn) : ''; return sn ? sn.head + (u ? ' ' + u : '') : ''; }
@@ -2262,6 +2275,31 @@ class HudApp {
             c.uniform(ref, 'u_tach', T ? [T[0], T[1], T[2], T[3] || 1e5] : [0, 0, 0, 0]);
             c.uniform(ref, 'u_light', [this.nightOn ? 0 : 1]);     // softer needle shadows at night
             x.econ = new e36.Smooth(1000);
+        } else if (w.type === 'runway') {
+            const B = w.bars, Y = w.barY, max = this._barMax();
+            const lines = [];
+            (w.lines || []).slice(0, 8).forEach((g) => lines.push(g[0] - w.x, g[1] - w.y, g[2] - w.x, g[3] - w.y));
+            const nline = lines.length / 4;
+            while (lines.length < 32) lines.push(0);
+            c.uniform(ref, 'u_size', [w.w, w.h]);
+            c.uniform(ref, 'u_bar', [B[0] - w.x, B[1] - w.x, B[2] - w.x, B[3] - w.x]);
+            c.uniform(ref, 'u_barY', [Y[0] - w.y, Y[1] - w.y, Y[2] - w.x]);
+            c.uniform(ref, 'u_n', [max / 1000]);
+            c.uniform(ref, 'u_redFrom', [Math.min(this.setting('redline'), max - 500) / 1000]);
+            c.uniform(ref, 'u_line', lines, { type: 'vec4' });
+            c.uniform(ref, 'u_nline', [nline]);
+            c.uniform(ref, 'u_lit', rgb(color(t, 'barLit')));
+            c.uniform(ref, 'u_off', rgb(color(t, 'barOff')));
+            c.uniform(ref, 'u_frame', rgb(t.line));
+            c.uniform(ref, 'u_red', rgb(t.hot));
+            c.uniform(ref, 'u_redOff', rgb(color(t, 'redOff')));
+            c.uniform(ref, 'u_trk', rgb(color(t, 'ringTrack')));
+            c.uniform(ref, 'u_ink', rgb(t.ink));
+            c.uniform(ref, 'u_flash', [0]);
+            const a = this._atlas(w.font || 'w_num2', x.ci);
+            c.bind(ref, 'u_font', a.ref);
+            c.uniform(ref, 'u_grid', [a.cols, a.rows]);
+            c.uniform(ref, 'u_cell', [a.cellW / a.cellH, a.chars.indexOf('0')]);
         } else if (w.type === 'vdash') {
             // the bracket lines (target px): [x0, y0, x1, y1, width, brightness 0..1]
             const seg = [], segW = [];
@@ -2849,6 +2887,25 @@ class HudApp {
             x.c.uniform(x.ref, 'u_rpm', [vals[1]]);
             x.c.uniform(x.ref, 'u_fuel', [vals[2]]);
             x.c.uniform(x.ref, 'u_oil', [vals[3]]);
+        } else if (w.type === 'runway') {
+            const end = this._barMax() / 1000 + 0.5;
+            const q = (v) => Math.round(Math.min(1, Math.max(0, v)) * 400) / 400;
+            const rpm = this._raw('rpm');
+            const rings = [0, 1].map((i) => (w.rings || [])[i]);
+            const meters = [0, 1].map((i) => (w.mtrs || [])[i]);
+            const ringValues = rings.map((g) => (g ? q(this._slotFrac(g.slot)) : 0));
+            const meterValues = meters.map((m) => (m ? q(this._slotFrac(m.slot)) : 0));
+            const revValue = isNum(rpm) ? q(rpm / 1000 / end) * end : 0;
+            const key = [revValue, this.flash ? 1 : 0].concat(ringValues, meterValues).join('|');
+            if (!force && key === x.last) return;
+            x.last = key;
+            x.c.uniform(x.ref, 'u_val', [revValue]);
+            x.c.uniform(x.ref, 'u_flash', [this.flash ? 1 : 0]);
+            const ringUniforms = [], meterUniforms = [];
+            rings.forEach((g, i) => ringUniforms.push(g ? g.cx - w.x : 0, g ? g.cy - w.y : 0, g ? g.r : 0, ringValues[i]));
+            meters.forEach((m, i) => meterUniforms.push(m ? m.x - w.x : 0, m ? m.y - w.y : 0, m ? m.w : 0, meterValues[i]));
+            x.c.uniform(x.ref, 'u_ring', ringUniforms, { type: 'vec4' });
+            x.c.uniform(x.ref, 'u_mtr', meterUniforms, { type: 'vec4' });
         } else if (w.type === 'e36needles') {
             // the needles: each dial's value read off its traced scale ([value, angle] pairs); no data parks it on its pin.
             // Each follows its angle with inertia (e36.Needle), the rev needle from the unfiltered rpm: the follower is
