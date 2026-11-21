@@ -135,7 +135,7 @@
  *   romadial  effect layer (shaders.js romadial): a fixed gold circular tachometer face with a dark hub, scale ticks and
  *             redline zone; "center", "outer", "inner", "start", "sweep", "max" and "redline" set its geometry and scale.
  *   mperf     effect layer (shaders.js mperf): a bent rev band following "path" points, with slot-based "rings",
- *             segmented "mtrs" and thin "lines"; its fill follows rpm and the theme's shift cue.
+ *             segmented "mtrs" and thin "lines"; its fill follows rpm and its outer shell flashes red at the shift cue.
  *   tiles     effect layer (shaders.js tiles): the Dyno theme's readout tiles in ONE layer: the background (role "color",
  *             bg) and up to 14 rounded tiles "tiles": [{ id, x, y, w, h (target px), slot, bar (false: none), toggle }],
  *             each with a thin "accent" strip on top and a bar along the bottom for its slot's sensor (TILE_BAR; zoned

@@ -2181,6 +2181,8 @@ float segDist(vec2 p, vec2 a, vec2 b, out float along) {
     return length(p - (a + d * h));
 }
 
+float cov(float d) { return clamp(0.5 - d, 0.0, 1.0); }
+
 vec3 revColor(float t) {
     if (t >= u_redFrom) return u_red;
     if (t >= 0.59) return u_yellow;
@@ -2204,15 +2206,21 @@ void main() {
         travelled += u_pathLen[i];
     }
 
-    if (nearest < 43.0) {
-        c = u_track * 0.22;
-        if (nearest < 26.0) c = vec3(0.025, 0.027, 0.03);
-        if (nearest < 20.0) {
-            c = progress <= u_value ? revColor(progress) : vec3(0.10, 0.105, 0.115);
-            float gap = min(fract(progress * 8.0), 1.0 - fract(progress * 8.0));
-            if (progress > 0.01 && gap < 0.014) c = vec3(0.0);
-            if (u_flash > 0.5 && progress <= u_value) c = u_red;
-        }
+    float shell = cov(nearest - 43.0);
+    if (shell > 0.0) {
+        c = mix(vec3(0.0), u_track * 0.22, shell);
+        float well = cov(nearest - 26.0);
+        c = mix(c, vec3(0.025, 0.027, 0.03), well);
+        float band = cov(nearest - 20.0);
+        vec3 fill = progress <= u_value ? revColor(progress) : vec3(0.10, 0.105, 0.115);
+        if (u_flash > 0.5 && progress <= u_value) fill = u_red;
+        c = mix(c, fill, band);
+        float gap = min(fract(progress * 8.0), 1.0 - fract(progress * 8.0));
+        float gapAA = 8.0 / max(u_pathTotal, 1.0);
+        float seam = 1.0 - smoothstep(0.014 - gapAA, 0.014 + gapAA, gap);
+        if (progress > 0.01) c = mix(c, vec3(0.0), seam * band);
+        float shellFlash = u_flash > 0.5 ? shell * (1.0 - well) : 0.0;
+        c = mix(c, u_red, shellFlash);
         float outer = clamp(1.0 - abs(nearest - 39.0), 0.0, 1.0);
         float inner = clamp(1.0 - abs(nearest - 24.0), 0.0, 1.0);
         c = mix(c, u_frame, max(outer, inner) * 0.95);
@@ -2267,7 +2275,7 @@ const RUNWAY = `// The Runway theme in one cluster-render "effect" layer (GLSL E
 // (thousands) under a thick red bar: rails and lines red, red dots in the column, dark red under the number. Lit from
 // the far end down to the revs (u_val, thousands): white, the numbers dark (u_ink); the red zone bright red. Then two ring gauges (u_ring: centre, radius, value
 // 0..1, lit clockwise from 6 o'clock), two segmented bars (u_mtr: left x, y, width, value) and thin lines (u_line,
-// u_nline of them). u_flash 1: the lit part in the shift red. v_uv (0,0) is the top-left; layer px = panel px.
+// u_nline of them). u_flash 1: the lit part and outer shell flash red. v_uv (0,0) is the top-left; layer px = panel px.
 #ifdef GL_FRAGMENT_PRECISION_HIGH
 precision highp float;
 #else
@@ -2352,15 +2360,15 @@ void main() {
             vec3 col;
             if (on) {
                 vec3 L = u_flash > 0.5 || red ? u_red : u_lit;
-                float wv = mod(floor((p.x + p.y) / 6.0) + floor((p.x - p.y) / 6.0), 2.0);
-                col = carbon ? L * (0.84 + 0.08 * wv) : L;
+                float weave = 0.5 + 0.5 * sin((px + dy) * 0.35) * sin((px - dy) * 0.35);
+                col = carbon ? L * (0.94 + 0.06 * weave) : L;
             } else if (red) {
                 // dark red under the number, the carbon column as bright red dots
                 vec2 q = mod(p, 7.0) - 3.5;
                 col = carbon ? mix(u_redOff * 0.35, u_red, cov(length(q) - 2.6)) : u_redOff * (0.22 + 0.3 * (1.0 - u));
             } else {
-                float wv = mod(floor((p.x + p.y) / 5.0) + floor((p.x - p.y) / 5.0), 2.0);
-                col = carbon ? u_off * (0.38 + 0.4 * wv) : vec3(0.02);
+                float weave = 0.5 + 0.5 * sin((px + dy) * 0.35) * sin((px - dy) * 0.35);
+                col = carbon ? u_off * (0.58 + 0.16 * weave) : vec3(0.02);
             }
             vec3 ink = on ? u_ink : W * 0.62;
             // a tick per thousand: across the carbon column to the inner rail's hook, and a short one at the outer rail
