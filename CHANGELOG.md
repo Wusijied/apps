@@ -4,6 +4,10 @@ Newest first. Dates are when the build was pushed.
 
 ## Nov 20 2026
 
+- **Cluster Themes 0.20.18, HUD Widgets 0.15.2:**
+  - Plug-in hybrid drive modes now select the corresponding Sport, Comfort or Eco Pro theme/layout.
+  - Cluster Themes adds independent temperature and pressure units, each defaulting to Match speed.
+  - Cluster Themes can leave BMW's bottom strip clear, and its Settings rows fit better on smaller screens.
 - **Cluster Themes 0.20.17:** Roma's tachometer now ends at 7 (7000 rpm), with its redline marks starting at 6.
 - **Cluster Themes 0.20.16:** Roma's speed and gear cards move right; the speed field is wider and taller so large values and the unit no longer crowd each other.
 - **Cluster Themes 0.20.15:** Roma's right music panel now matches the left engine-status panel's size and alignment.
