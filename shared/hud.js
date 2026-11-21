@@ -92,6 +92,9 @@
  *             [r, g, b] 0..1}), "bars" (at most 3, gone while the map shows: {x, y, w, signal, min, max}), "panel" [x, y,
  *             w, h] (the music panel's plate), "vinyl" [cx, cy, r] (red label while something plays), "prog" [x, y, w]
  *             (the track's progress); the map window as fill ("hole", "holeWhen") with its corners cut "holeCut" px
+ *   cdash     effect layer; the Apex needle dash (shaders.js cdash): "tach" [cx, cy, outer r, band width, start deg,
+ *             sweep deg, thousands on scale], "zones" [amber rpm, red rpm], optional "panels" [left/right inner x, top/bottom y],
+ *             "bars" [{x, y, w, signal, min, max, red}] (up to 4), "lines" (up to 8 [x0, y0, x1, y1]) and "glow" [r, g, b, strength]
  *   sdash     effect layer; the whole Sport theme (shaders.js sdash), optional "road" [horizonY, scale] (a road in the
  *             middle while no map shows, its dashes running with the speed): "geo" [yTop, yBend, yBottom, xBend] and
  *             "k" [above, below, round] for the left bracket's outer line (the right one is mirrored), "band"
@@ -2394,6 +2397,28 @@ class HudApp {
             x.prog = pr ? [pr[0] - w.x, pr[1] - w.y, pr[2]] : [0, 0, 0];
             c.uniform(ref, 'u_hole', this._hole(w));
             c.uniform(ref, 'u_holeC', [isNum(w.holeCut) ? w.holeCut : 40]);
+        } else if (w.type === 'cdash') {
+            const T = w.tach, max = w.rpmMax || 8000, zones = w.zones || [6500, 7000];
+            const panels = w.panels || [w.w / 3, 2 * w.w / 3, 0, w.h];
+            const bars = (w.bars || []).slice(0, 4), lines = (w.lines || []).slice(0, 8);
+            const bu = [], bz = [], lu = [];
+            bars.forEach((b) => {
+                bu.push(b.x - w.x, b.y - w.y, b.w, 0);
+                bz.push(isNum(b.red) ? b.red : 1);
+            });
+            while (bu.length < 16) bu.push(0);
+            while (bz.length < 4) bz.push(1);
+            lines.forEach((s) => lu.push(s[0] - w.x, s[1] - w.y, s[2] - w.x, s[3] - w.y));
+            while (lu.length < 32) lu.push(0);
+            c.uniform(ref, 'u_size', [w.w, w.h]);
+            c.uniform(ref, 'u_tach', [T[0] - w.x, T[1] - w.y, T[2], T[3]]);
+            c.uniform(ref, 'u_tachA', [T[4], T[5], T[6], 0]);
+            c.uniform(ref, 'u_zone', [zones[0] / max, zones[1] / max]);
+            c.uniform(ref, 'u_panels', [panels[0] - w.x, panels[1] - w.x, panels[2] - w.y, panels[3] - w.y]);
+            c.uniform(ref, 'u_bar', bu, { type: 'vec4' });
+            c.uniform(ref, 'u_barZ', bz);
+            c.uniform(ref, 'u_line', lu, { type: 'vec4' });
+            c.uniform(ref, 'u_glow', w.glow || [0, 0, 0, 0]);
         } else if (w.type === 'mdash') {
             const ty = w.tyres || [0, 0, 0], L = w.gaugeL || {}, R = w.gaugeR || {}, b = w.blade || {};
             const bars = Array.isArray(w.segbars) ? w.segbars.slice(0, 4) : [];
@@ -3081,6 +3106,23 @@ class HudApp {
             x.c.uniform(x.ref, 'u_bar', bu, { type: 'vec4' });
             x.c.uniform(x.ref, 'u_vinyl', x.vinyl.concat([on]));
             x.c.uniform(x.ref, 'u_prog', x.prog.concat([pv]));
+        } else if (w.type === 'cdash') {
+            const max = w.rpmMax || 8000, rpm = this._raw('rpm');
+            const q = (v) => Math.round(Math.min(1, Math.max(0, v)) * 400) / 400;
+            const rev = isNum(rpm) ? q(rpm / max) : 0;
+            const bars = (w.bars || []).slice(0, 4), values = bars.map((b) => {
+                const raw = b.signal ? this._raw(b.signal) : null;
+                return isNum(raw) && b.max !== b.min ? q((raw - b.min) / (b.max - b.min)) : 0;
+            });
+            while (values.length < 4) values.push(0);
+            const key = [rev].concat(values).join('|');
+            if (!force && key === x.last) return;
+            x.last = key;
+            const T = w.tach, bu = [];
+            bars.forEach((b, i) => bu.push(b.x - w.x, b.y - w.y, b.w, values[i]));
+            while (bu.length < 16) bu.push(0);
+            x.c.uniform(x.ref, 'u_tachA', [T[4], T[5], T[6], rev]);
+            x.c.uniform(x.ref, 'u_bar', bu, { type: 'vec4' });
         } else if (w.type === 'mview') {
             const us = this.setting('units') === 'us';
             const sp = this._raw('speed'), rpm = this._raw('rpm'), fuel = this._raw('fuel'), oil = this._raw('oil');

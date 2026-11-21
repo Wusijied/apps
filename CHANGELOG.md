@@ -2,8 +2,13 @@
 
 Newest first. Dates are when the build was pushed.
 
+## Nov 21 2026
+
+- **Cluster Themes 0.20.20:** Apex replaces its right-side G-meter with a now-playing panel showing the track, artist and playback times; range and outside temperature appear when nothing is playing.
+
 ## Nov 20 2026
 
+- **Cluster Themes 0.20.19:** **New theme: Apex**, a carbon-weave needle dash with a central tachometer, red side glow, live engine bars and a G-meter.
 - **Cluster Themes 0.20.18, HUD Widgets 0.15.2:**
   - Plug-in hybrid drive modes now select the corresponding Sport, Comfort or Eco Pro theme/layout.
   - Cluster Themes adds independent temperature and pressure units, each defaulting to Match speed.

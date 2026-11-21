@@ -46,6 +46,11 @@ Besides its own code, the app ships with:
    the layout mview.json) is ported from Asksket's f90 branch of a fork of this repository
    (https://github.com/Asksket/apps), offered in issue #15: MIT, the same licence as this repository.
 
+8. The Apex theme's cdash shader, layout and live uniform updates are adapted from
+   https://github.com/jsbaughman/apps (apps/cluster_themes/hud/layouts/apex.json and shared/shaders.js):
+   MIT, Copyright (c) 2026 bimmer-lab. The MIT notice and permission are in the repository's LICENSE.
+   The upstream a_* font atlases are not included; Apex uses this app's existing font atlases.
+
 ----------------------------------------------------------------------------------------------
 Copyright 2017 The Barlow Project Authors (https://github.com/jpt/barlow)
 Copyright 2011 The Michroma Project Authors (https://github.com/googlefonts/Michroma-font)

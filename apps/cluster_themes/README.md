@@ -72,6 +72,10 @@ A race-sim style dash with angled frames and a music panel.
 
 <p align="center"><img src="../../docs/images/cluster-vector.png" width="900" alt="Vector theme"></p>
 
+### Apex
+
+A needle dash with a carbon-weave backdrop and restrained red glow at the sides. The central 0–8000 rpm dial lights white up to the revs, turns amber from 6500 rpm and red from 7000 rpm, with a red needle. Boost and oil temperature sit at the left, coolant and fuel along the bottom, and a music panel on the right shows the current track, artist and playback times. When nothing is playing, it shows range and outside temperature. The speed and gear sit in the open quarter of the dial.
+
 ### E36
 
 The BMW E36 328i cluster of the 90s, as it was: traced off photos of the real thing at its true proportions, as big as the screen allows.

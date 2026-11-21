@@ -49,6 +49,7 @@ const TYPES = {
     ribbon: ['curve', 'span'],
     runway: ['bars', 'barY'],
     mperf: ['path', 'rings'],
+    cdash: ['tach'],
     deco: [],
     nav: [],
 };
