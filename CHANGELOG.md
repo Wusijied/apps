@@ -4,6 +4,9 @@ Newest first. Dates are when the build was pushed.
 
 ## Nov 22 2026
 
+- **Cluster Themes 0.20.30:** Roma's dial overlays the left and right panels, whose inner edges use exact external arcs tangent to the tachometer.
+- **Cluster Themes 0.20.29:** Roma embeds the speed and gear cards into the tachometer's right-side arc; the two side panels remain outside the dial.
+- **Cluster Themes 0.20.28:** Roma's speed and gear cards follow the tachometer's right-hand arc, while the left and right panels remain externally tangent to the dial.
 - **Cluster Themes 0.20.27:** Roma's speed and gear cards sit as complete top layers over the tachometer, with no circular card clipping.
 - **Cluster Themes 0.20.26:** Roma's left and right panels use external arcs tangent to the central tachometer.
 - **Cluster Themes 0.20.25:** Roma's left and right panels move outside the central tachometer so they no longer overlap it.
