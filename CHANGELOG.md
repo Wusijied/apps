@@ -4,6 +4,8 @@ Newest first. Dates are when the build was pushed.
 
 ## Nov 22 2026
 
+- **Cluster Themes 0.20.32:** Roma extends the speed and gear cards farther along the tachometer's right-hand scale arc.
+- **Cluster Themes 0.20.31:** Roma's tachometer shrinks to 620 px and the scale labels, side-panel cuts and right-side arc cards are rescaled around the same centre.
 - **Cluster Themes 0.20.30:** Roma's dial overlays the left and right panels, whose inner edges use exact external arcs tangent to the tachometer.
 - **Cluster Themes 0.20.29:** Roma embeds the speed and gear cards into the tachometer's right-side arc; the two side panels remain outside the dial.
 - **Cluster Themes 0.20.28:** Roma's speed and gear cards follow the tachometer's right-hand arc, while the left and right panels remain externally tangent to the dial.
