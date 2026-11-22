@@ -4,6 +4,8 @@ Newest first. Dates are when the build was pushed.
 
 ## Nov 22 2026
 
+- **Cluster Themes 0.20.27:** Roma's speed and gear cards sit as complete top layers over the tachometer, with no circular card clipping.
+- **Cluster Themes 0.20.26:** Roma's left and right panels use external arcs tangent to the central tachometer.
 - **Cluster Themes 0.20.25:** Roma's left and right panels move outside the central tachometer so they no longer overlap it.
 - **Cluster Themes 0.20.24:** Roma's 0–7 RPM scale ticks are shorter and thinner; the RPM needle returns to its original size.
 - **Cluster Themes 0.20.23:** Roma's red RPM needle is shorter and thinner so it stays clear of the 0–7 scale numbers.

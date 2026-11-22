@@ -112,7 +112,14 @@
       "fill": "dialPanel",
       "line": "goldShade",
       "border": 2,
-      "radius": 14
+      "radius": 14,
+      "cutCircle": {
+        "center": [
+          910,
+          205
+        ],
+        "radius": 334
+      }
     },
     {
       "id": "systems_header",
@@ -127,7 +134,14 @@
       "fill": "gold",
       "line": "gold",
       "border": 0,
-      "radius": 14
+      "radius": 14,
+      "cutCircle": {
+        "center": [
+          910,
+          205
+        ],
+        "radius": 334
+      }
     },
     {
       "id": "systems_head",
@@ -375,7 +389,7 @@
       "id": "speed_plate",
       "type": "box",
       "class": "content",
-      "z": 4,
+      "z": 8,
       "conn": 1,
       "x": 960,
       "y": 270,
@@ -384,20 +398,13 @@
       "fill": "dialOverlay",
       "line": "dialOverlayLine",
       "border": 1.5,
-      "radius": 14,
-      "clipCircle": {
-        "center": [
-          0,
-          85
-        ],
-        "radius": 334
-      }
+      "radius": 14
     },
     {
       "id": "gear_plate",
       "type": "box",
       "class": "content",
-      "z": 4,
+      "z": 8,
       "conn": 1,
       "x": 960,
       "y": 399,
@@ -406,19 +413,12 @@
       "fill": "dialOverlay",
       "line": "dialOverlayLine",
       "border": 1.5,
-      "radius": 14,
-      "clipCircle": {
-        "center": [
-          0,
-          -44
-        ],
-        "radius": 334
-      }
+      "radius": 14
     },
     {
       "id": "tach_0",
       "type": "text",
-      "z": 5,
+      "z": 9,
       "conn": 1,
       "x": 931,
       "y": 570,
@@ -432,7 +432,7 @@
     {
       "id": "tach_1",
       "type": "text",
-      "z": 5,
+      "z": 9,
       "conn": 1,
       "x": 800,
       "y": 532,
@@ -446,7 +446,7 @@
     {
       "id": "tach_2",
       "type": "text",
-      "z": 5,
+      "z": 9,
       "conn": 1,
       "x": 708,
       "y": 430,
@@ -460,7 +460,7 @@
     {
       "id": "tach_3",
       "type": "text",
-      "z": 5,
+      "z": 9,
       "conn": 1,
       "x": 684,
       "y": 294,
@@ -474,7 +474,7 @@
     {
       "id": "tach_4",
       "type": "text",
-      "z": 5,
+      "z": 9,
       "conn": 1,
       "x": 737,
       "y": 168,
@@ -488,7 +488,7 @@
     {
       "id": "tach_5",
       "type": "text",
-      "z": 5,
+      "z": 9,
       "conn": 1,
       "x": 849,
       "y": 89,
@@ -502,7 +502,7 @@
     {
       "id": "tach_6",
       "type": "text",
-      "z": 5,
+      "z": 9,
       "conn": 1,
       "x": 986,
       "y": 81,
@@ -516,7 +516,7 @@
     {
       "id": "tach_7",
       "type": "text",
-      "z": 5,
+      "z": 9,
       "conn": 1,
       "x": 1107,
       "y": 147,
@@ -530,7 +530,7 @@
     {
       "id": "speed",
       "type": "text",
-      "z": 5,
+      "z": 10,
       "conn": 1,
       "x": 971,
       "y": 297,
@@ -544,7 +544,7 @@
     {
       "id": "speed_unit",
       "type": "text",
-      "z": 5,
+      "z": 10,
       "conn": 1,
       "x": 1197,
       "y": 314,
@@ -558,7 +558,7 @@
     {
       "id": "gear",
       "type": "text",
-      "z": 5,
+      "z": 10,
       "conn": 1,
       "x": 975,
       "y": 436,
@@ -573,7 +573,7 @@
     {
       "id": "mode",
       "type": "text",
-      "z": 5,
+      "z": 10,
       "conn": 1,
       "x": 975,
       "y": 533,
@@ -598,7 +598,14 @@
       "fill": "dialPanel",
       "line": "goldShade",
       "border": 2,
-      "radius": 16
+      "radius": 16,
+      "cutCircle": {
+        "center": [
+          -350,
+          205
+        ],
+        "radius": 334
+      }
     },
     {
       "id": "music_header",
@@ -613,7 +620,14 @@
       "fill": "gold",
       "line": "gold",
       "border": 0,
-      "radius": 16
+      "radius": 16,
+      "cutCircle": {
+        "center": [
+          -350,
+          205
+        ],
+        "radius": 334
+      }
     },
     {
       "id": "media_head",
