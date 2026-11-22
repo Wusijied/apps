@@ -2120,8 +2120,8 @@ void main() {
     float index = floor(rel / stepAngle + 0.5);
     float major = 1.0 - step(0.5, mod(index, 10.0));
     float midTick = 1.0 - step(0.5, mod(index, 5.0));
-    float tickLength = mix(24.0, mix(40.0, 58.0, major), midTick);
-    float tickWidth = mix(2.0, mix(3.2, 4.2, major), midTick);
+    float tickLength = mix(20.0, mix(32.0, 48.0, major), midTick);
+    float tickWidth = mix(1.4, mix(2.2, 3.2, major), midTick);
     float tickStart = u_outer - tickLength;
     float tickEnd = u_outer - 5.0;
     float tickArc = abs(rel - index * stepAngle) * r;

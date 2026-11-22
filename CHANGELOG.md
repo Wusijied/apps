@@ -4,6 +4,8 @@ Newest first. Dates are when the build was pushed.
 
 ## Nov 22 2026
 
+- **Cluster Themes 0.20.24:** Roma's 0–7 RPM scale ticks are shorter and thinner; the RPM needle returns to its original size.
+- **Cluster Themes 0.20.23:** Roma's red RPM needle is shorter and thinner so it stays clear of the 0–7 scale numbers.
 - **Cluster Themes 0.20.22:** Roma's dial ticks use angular distance for more reliable rendering on the cluster GPU.
 - **Cluster Themes 0.20.21:** Roma's RPM ticks are longer, thicker and higher-contrast so the scale is easier to see on the cluster.
 
