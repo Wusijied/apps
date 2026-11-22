@@ -2,6 +2,11 @@
 
 Newest first. Dates are when the build was pushed.
 
+## Nov 22 2026
+
+- **Cluster Themes 0.20.22:** Roma's dial ticks use angular distance for more reliable rendering on the cluster GPU.
+- **Cluster Themes 0.20.21:** Roma's RPM ticks are longer, thicker and higher-contrast so the scale is easier to see on the cluster.
+
 ## Nov 21 2026
 
 - **Cluster Themes 0.20.20:** Apex replaces its right-side G-meter with a now-playing panel showing the track, artist and playback times; range and outside temperature appear when nothing is playing.

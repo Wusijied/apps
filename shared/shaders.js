@@ -2070,7 +2070,11 @@ void main() {
 `;
 
 const ROMADIAL = `// Static Roma-inspired tachometer face. The separate needle layer is the only moving dial element.
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
 precision mediump float;
+#endif
 varying vec2 v_uv;
 uniform vec2 u_size;
 uniform vec2 u_center;
@@ -2112,28 +2116,25 @@ void main() {
     float rel = mod(angle - u_start + tau, tau);
     float inScale = 1.0 - step(u_sweep + 0.0001, rel);
     float divisions = max(u_max * 10.0, 1.0);
-    float index = floor(rel / max(u_sweep / divisions, 0.0001) + 0.5);
-    float tickAngle = u_start + index * u_sweep / divisions;
-    vec2 direction = vec2(sin(tickAngle), -cos(tickAngle));
-    float along = dot(d, direction);
-    float side = abs(d.x * direction.y - d.y * direction.x);
+    float stepAngle = max(u_sweep / divisions, 0.0001);
+    float index = floor(rel / stepAngle + 0.5);
     float major = 1.0 - step(0.5, mod(index, 10.0));
     float midTick = 1.0 - step(0.5, mod(index, 5.0));
-    float tickLength = mix(20.0, mix(32.0, 48.0, major), midTick);
-    float tickWidth = mix(1.4, mix(2.2, 3.2, major), midTick);
+    float tickLength = mix(24.0, mix(40.0, 58.0, major), midTick);
+    float tickWidth = mix(2.0, mix(3.2, 4.2, major), midTick);
     float tickStart = u_outer - tickLength;
-    float tickEnd = u_outer - 6.0;
-    float tick = aa(side - tickWidth)
-        * smoothstep(tickStart - 1.0, tickStart + 1.0, along)
-        * (1.0 - smoothstep(tickEnd - 1.0, tickEnd + 1.0, along))
+    float tickEnd = u_outer - 5.0;
+    float tickArc = abs(rel - index * stepAngle) * r;
+    float tick = aa(tickArc - tickWidth)
+        * smoothstep(tickStart - 1.0, tickStart + 1.0, r)
+        * (1.0 - smoothstep(tickEnd - 1.0, tickEnd + 1.0, r))
         * inScale;
     float redTick = step(u_redline * 10.0, index);
-    vec3 tickColor = mix(u_mark, u_ink, major * 0.6 + midTick * 0.25);
+    vec3 tickColor = mix(u_mark, u_ink, min(major * 0.85 + midTick * 0.4, 1.0));
     tickColor = mix(tickColor, u_red, redTick);
 
-    float redlineStep = u_sweep / divisions;
-    float redlineLocal = mod(rel, redlineStep);
-    float redlineEdge = min(redlineLocal, redlineStep - redlineLocal);
+    float redlineLocal = mod(rel, stepAngle);
+    float redlineEdge = min(redlineLocal, stepAngle - redlineLocal);
     float redline = step(u_sweep * u_redline / max(u_max, 0.001), rel) * inScale
         * aa(abs(r - (u_outer - 12.0)) - 5.0)
         * smoothstep(0.002, 0.005, redlineEdge);
