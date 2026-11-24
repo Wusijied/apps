@@ -153,11 +153,7 @@ Two rev bars that lean apart towards you like a runway seen from the cockpit. Th
 
 Inspired by the supplied reference, with Runway's layout for the other readouts: the 1–8 scale sits above a single bent, live rev bar, with the speed and gear in the centre. The left panel shows a G-meter or four customizable readouts, and live power and torque rings sit on the right. Range and currently playing media sit at the top; coolant, boost, clock and outside temperature line the bottom. The rings, bars and left readouts can be changed on the Readouts tab.
 
-### Roma
-
-An original grand-touring layout, not a reproduction of any OEM display. A fixed gold circular tachometer has a dark hub, a static 0–7 scale and redline marks; its red RPM needle sweeps to 7000 rpm. The left panel shows water, oil, boost and fuel readings with bars. Framed speed and gear cards sit over the lower-right of the dial; a same-sized music panel on the right shows the track, artist and elapsed/remaining time.
-
-Minimal, Track, Drag, Rally, Retro 80s, Cruise, Dyno, Ribbon, Runway, M Performance and Roma have no map window; with "Show Waze map inside the theme" on, Waze stays in its usual place while they show.
+Minimal, Track, Drag, Rally, Retro 80s, Cruise, Dyno, Ribbon, Runway and M Performance have no map window; with "Show Waze map inside the theme" on, Waze stays in its usual place while they show.
 
 More themes are on the way.
 
